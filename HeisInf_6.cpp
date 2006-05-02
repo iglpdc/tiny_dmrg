@@ -18,7 +18,8 @@ int main()
   int iter, NumI;
   int i1, i1p, i2, i2p, i3, i4; 
   int b1; 
-  int m, st;      //# states
+  int m, st;     //# states
+  int sites;     //# sites
   double Eval;   //Eigenvalue
 
   cout<<"# states to keep: ";
@@ -26,7 +27,6 @@ int main()
 
   //Matrices
   Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
-  Array<double,4> TSR2m(2,m,2,m);
 
   Array<double,4> Habcd(4,4,4,4); //superblock hamiltonian
   Array<double,2> HAB(4,4);        //new SYSTEM Hamiltonian
@@ -36,18 +36,19 @@ int main()
   Array<double,2> OT(4,m);   // trasposed truncation matrix
   Array<double,2> Hl(4,m);   // the left half of new system H
 
-  Array<double,2> HAp(m,m);  //A' block hamiltonian
-  Array<double,2> SzL(m,m);   //Sz(left) operator  
-  Array<double,2> SmL(m,m);   //Sm(left) operator
-  Array<double,2> SpL(m,m);   //Sp(left) operator
+  Array<double,2> HAp(4,4);  //A' block hamiltonian
+  Array<double,2> SzL(4,4);   //Sz(left) operator  
+  Array<double,2> SmL(4,4);   //Sm(left) operator
+  Array<double,2> SpL(4,4);   //Sp(left) operator
 
   //create identity matrices
-  Array<double,2> I2(2,2), I4(4,4), Im(m,m), I2m(2*m,2*m);   
+  Array<double,2> I2(2,2), I4(4,4), I2m(2*m,2*m);   
   I2=0.0; I4=0.0; I2m=0.0;
   for (b1=0; b1<2; b1++) I2(b1,b1)=1.0;
   for (b1=0; b1<4; b1++) I4(b1,b1)=1.0;
-  for (b1=0; b1<m; b1++) Im(b1,b1)=1.0;
   for (b1=0; b1<(2*m); b1++) I2m(b1,b1)=1.0;
+  Array<double,2> I2st(4,4);
+  I2st = I4;
 
   // Create pauli matrices
   Array<double,2> Sz(2,2), Sp(2,2), Sm(2,2);
@@ -72,59 +73,59 @@ int main()
   //cout<<"H12 "<<H12<<endl;
 
   TSR = Sz(i,k)*I2(j,l);
-  Array<double,2> SZab = reduceM2M2(TSR,2);
-  
+  Array<double,2> SzAB = reduceM2M2(TSR,2);
+
   TSR = Sm(i,k)*I2(j,l);
-  Array<double,2> SMab = reduceM2M2(TSR,2);
+  Array<double,2> SmAB = reduceM2M2(TSR,2);
 
   TSR = Sp(i,k)*I2(j,l);
-  Array<double,2> SPab = reduceM2M2(TSR,2);
+  Array<double,2> SpAB = reduceM2M2(TSR,2);
 
   HAB = H12;
   st = 4;     //start with a 2^2=4 state system
+  sites = 2;
 
   /******infinite system algorithm loop first iteration**********/
   /******build system until number of desired states m **********/
 
-  Array<double,2> SzAB(2*st,2*st); 
-  Array<double,2> SpAB(2*st,2*st);
-  Array<double,2> SmAB(2*st,2*st);
-
   while(st <= m) {
 
-    Habcd = HAB(i,k)*I4(j,l) + I4(i,k)*HAB(j,l) + 
-      SZab(i,k)*SZab(j,l)+ 0.5*SPab(i,k)*SMab(j,l) + 0.5*SMab(i,k)*SPab(j,l);
+   Habcd = HAB(i,k)*I2st(j,l) + I2st(i,k)*HAB(j,l) +
+      SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
   
     EigenValuesLAN(Habcd,Psi,(st*st),&Eval);
      
-    cout<<"Energy "<<Eval<<endl;
+    cout<<"sites: "<<2.0*sites;
+    cout<<" Energy: "<<Eval/(2.0*sites)<<endl;
   
+    HAp.resize(st,st);
     HAp = HAB;   /*USE IF NO RG FOR 1st STEP*/
-    SzL = SZab;
-    SpL = SPab;
-    SmL = SMab;
+    SzL.resize(st,st);
+    SzL = SzAB;
+    SpL.resize(st,st);
+    SpL = SpAB;
+    SmL.resize(st,st);
+    SmL = SmAB;
 
     // Add a single spin  (m*m*2*2 tensor)
     TSR.resize(st,2,st,2);
+    
     TSR = HAp(i,k)*I2(j,l) + SzL(i,k)*Sz(j,l)+ 
       0.5*SpL(i,k)*Sm(j,l) + 0.5*SmL(i,k)*Sp(j,l) ;
-    //cout<<TSR<<endl;
-  
-
     HAB.resize(2*st,2*st);            //Hamiltonian for next iteration
     HAB = reduceM2M2(TSR,st);
    //   cout<<HAB<<endl;
 
     SzAB.resize(2*st,2*st);  //Operators for next iteration
-    TSR = Im(i,k)*Sz(j,l);
+    TSR = I2st(i,k)*Sz(j,l);
     SzAB = reduceM2M2(TSR,st);
 
     SpAB.resize(2*st,2*st);
-    TSR = Im(i,k)*Sp(j,l);
+    TSR = I2st(i,k)*Sp(j,l);
     SpAB = reduceM2M2(TSR,st);
 
     SmAB.resize(2*st,2*st);
-    TSR = Im(i,k)*Sm(j,l);
+    TSR = I2st(i,k)*Sm(j,l);
     SmAB = reduceM2M2(TSR,st);  
 
     Habcd.resize(2*st,2*st,2*st,2*st);   //re-prepare superblock matrix
@@ -135,6 +136,11 @@ int main()
     Hl.resize((2*st),st);   
   
     st *= 2;
+    sites += 1;
+
+    I2st.resize(2*st,2*st);    //redifine identity matrix
+    I2st = 0.0;
+    for (b1=0; b1<(2*st); b1++) I2st(b1,b1)=1.0;
 
   }//end while
 
@@ -146,8 +152,7 @@ int main()
       SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
 
     EigenValuesLAN(Habcd,Psi,(2*m)*(2*m),&Eval);
-//    cout<<iter<<" Energy "<<Eval<<" "<<Eval/(2*iter+4)<<endl;
-    cout<<1.0/(2.0*iter+4.0)<<" "<<Eval/(2.0*iter+4.0)<<endl;
+    cout<<2*sites<<" "<<Eval/(2.0*sites)<<endl;
     
     rhoTSR = 0;
     for (i1=0; i1<2*m; i1++)
@@ -178,6 +183,8 @@ int main()
     TSR = HAp(i,k)*I2(j,l) + SzL(i,k)*Sz(j,l)+ 
       0.5*SpL(i,k)*Sm(j,l) + 0.5*SmL(i,k)*Sp(j,l) ;
     HAB = reduceM2M2(TSR,m);    
+
+   sites += 1;
 
   }//iter
 

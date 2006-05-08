@@ -82,7 +82,7 @@ int main()
   Array<double,2> SpAB = reduceM2M2(TSR,2);
 
   HAB = H12;
-  st = 4;     //start with a 2^2=4 state system
+  st = 2;     //start with a 2^2=4 state system
   sites = 2;
 
   /******infinite system algorithm loop first iteration**********/
@@ -93,21 +93,22 @@ int main()
    Habcd = HAB(i,k)*I2st(j,l) + I2st(i,k)*HAB(j,l) +
       SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
   
-    EigenValuesLAN(Habcd,Psi,(st*st),&Eval);
+    EigenValuesLAN(Habcd,Psi,(4*st*st),&Eval);
      
     cout<<"sites: "<<2.0*sites;
     cout<<" Energy: "<<Eval/(2.0*sites)<<endl;
   
-    HAp.resize(st,st);
+    HAp.resize(2*st,2*st);
     HAp = HAB;   /*USE IF NO RG FOR 1st STEP*/
-    SzL.resize(st,st);
+    SzL.resize(2*st,2*st);
     SzL = SzAB;
-    SpL.resize(st,st);
+    SpL.resize(2*st,2*st);
     SpL = SpAB;
-    SmL.resize(st,st);
+    SmL.resize(2*st,2*st);
     SmL = SmAB;
 
     // Add a single spin  (m*m*2*2 tensor)
+    st *= 2;
     TSR.resize(st,2,st,2);
     
     TSR = HAp(i,k)*I2(j,l) + SzL(i,k)*Sz(j,l)+ 
@@ -131,16 +132,16 @@ int main()
     Habcd.resize(2*st,2*st,2*st,2*st);   //re-prepare superblock matrix
     Psi.resize(2*st,2*st);             //GS wavefunction
     rhoTSR.resize(2*st,2*st);
-    OO.resize(st,(2*st));   
-    OT.resize((2*st),st);  
-    Hl.resize((2*st),st);   
+    OO.resize(m,(2*st));   
+    OT.resize((2*st),m);  
+    Hl.resize((2*st),m);   
   
-    st *= 2;
+//    st *= 2;
     sites += 1;
 
-    I2st.resize(2*st,2*st);    //redifine identity matrix
+    I2st.resize(4*st,4*st);    //redifine identity matrix
     I2st = 0.0;
-    for (b1=0; b1<(2*st); b1++) I2st(b1,b1)=1.0;
+    for (b1=0; b1<(4*st); b1++) I2st(b1,b1)=1.0;
 
   }//end while
 
@@ -148,43 +149,78 @@ int main()
 
   for (iter = 1; iter<NumI; iter++){
     
-    Habcd = HAB(i,k)*I2m(j,l) + I2m(i,k)*HAB(j,l) +
+    Habcd = HAB(i,k)*I2st(j,l) + I2st(i,k)*HAB(j,l) +
       SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
 
-    EigenValuesLAN(Habcd,Psi,(2*m)*(2*m),&Eval);
+    EigenValuesLAN(Habcd,Psi,(4*st*st),&Eval);
     cout<<2*sites<<" "<<Eval/(2.0*sites)<<endl;
     
     rhoTSR = 0;
-    for (i1=0; i1<2*m; i1++)
-      for (i1p=0; i1p<2*m; i1p++)
-        for (i2=0; i2<2*m; i2++)
+    for (i1=0; i1< 2*st; i1++)
+      for (i1p=0; i1p< 2*st; i1p++)
+        for (i2=0; i2< 2*st; i2++)
  	  rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
 
-
-    DMlargeEigen(rhoTSR, OO, (2*m), m);   
-    for (i1=0; i1<2*m; i1++)
-      for (i2=0; i2<m; i2++)
+    DMlargeEigen(rhoTSR, OO, 2*st, m);   
+    for (i1=0; i1<2*st; i1++)
+      for (i2=0; i2< m; i2++)
         OT(i1,i2) = OO(i2,i1);  //Transpose
 
+    st = m;
+
+    if (iter == 1) HAp.resize(m,m);
     //transform Operator Matrices to new basis
     Hl = sum(HAB(i,k)*OT(k,j),k);   //Ha'
     HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
     
+    if (iter == 1) SzL.resize(m,m);
     Hl = sum(SzAB(i,k)*OT(k,j),k);  
     SzL = sum(OO(i,k)*Hl(k,j),k);
     
+    if (iter == 1) SpL.resize(m,m);
     Hl = sum(SpAB(i,k)*OT(k,j),k);  
     SpL = sum(OO(i,k)*Hl(k,j),k);
     
+    if (iter == 1) SmL.resize(m,m);
     Hl = sum(SmAB(i,k)*OT(k,j),k);  
     SmL = sum(OO(i,k)*Hl(k,j),k);
     
+   if (iter == 1) TSR.resize(m,2,m,2);
     // Add a single spin  (m*m*2*2 tensor)
     TSR = HAp(i,k)*I2(j,l) + SzL(i,k)*Sz(j,l)+ 
       0.5*SpL(i,k)*Sm(j,l) + 0.5*SmL(i,k)*Sp(j,l) ;
+    if (iter == 1) HAB.resize(2*m,2*m);
     HAB = reduceM2M2(TSR,m);    
 
+    if (iter == 1){
+      SzAB.resize(2*m,2*m);  //Operators for next iteration
+      TSR = I2m(i,k)*Sz(j,l);
+      SzAB = reduceM2M2(TSR,m);
+  
+      SpAB.resize(2*m,2*m);
+      TSR = I2m(i,k)*Sp(j,l);
+      SpAB = reduceM2M2(TSR,m);
+  
+      SmAB.resize(2*m,2*m);
+      TSR = I2m(i,k)*Sm(j,l);
+      SmAB = reduceM2M2(TSR,m);
+    }
+
+   st = m;
    sites += 1;
+
+   if (iter == 1){    //final resize
+    I2st.resize(2*m,2*m);  
+    I2st = I2m;
+
+    Habcd.resize(2*m,2*m,2*m,2*m);   //re-prepare superblock matrix
+    Psi.resize(2*m,2*m);             //GS wavefunction
+    rhoTSR.resize(2*m,2*m);
+    OO.resize(m,(2*m));
+    OT.resize((2*m),m);
+    Hl.resize((2*m),m);
+
+   }
 
   }//iter
 

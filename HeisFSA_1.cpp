@@ -6,6 +6,7 @@
 //Roger Melko May 9 2006
 
 #include <blitz/array.h>
+#include <fstream>
 
 BZ_USING_NAMESPACE(blitz)
 
@@ -32,6 +33,12 @@ int main()
   int sites;     //# sites
   double Eval;   //Eigenvalue
   BLOCK blk;
+  ofstream fout;
+  char fname[7];
+ 
+  fname[0] = '0'; fname[1] = '0'; fname[2] = '0'; 
+  fname[3] = '.';
+  fname[4] = 'E'; fname[5] = 'n'; fname[6] = 'v';
 
   cout<<"# states to keep: ";
   cin>>m;
@@ -169,6 +176,18 @@ int main()
     for (b1=0; b1<(4*st); b1++) I2st(b1,b1)=1.0;
 
   }//end while
+
+  blk.size = sites-1;
+  fname[2] = 48 + (blk.size)%10;          //some ASCII crap
+  fname[1] = 48 + (blk.size-blk.size%10)/100;
+  fname[0] = 48;
+  fout.open(fname,ios::out);
+  fout << blk.size <<endl;
+  fout << blk.HAp ;
+  fout << blk.SzL ;
+  fout << blk.SpL ;
+  fout << blk.SmL ;
+  fout.close();
   
   OO.resize(m,(2*st));   
   OT.resize((2*st),m);  

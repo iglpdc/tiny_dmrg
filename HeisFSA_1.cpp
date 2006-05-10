@@ -10,11 +10,6 @@
 
 BZ_USING_NAMESPACE(blitz)
 
-//template function prototypes
-template<typename T> Array<T,2> reduceM2M2(const Array<T,4>&, const int);
-void EigenValuesLAN(Array<double,4>&, Array<double,2>&, const int, double *);
-void DMlargeEigen(Array<double,2>&, Array<double,2>&, const int, const int);
-
 //block object
 struct BLOCK {
   int size;    //# of sites
@@ -23,6 +18,13 @@ struct BLOCK {
   Array<double,2> SmL;   //Sm(left) operator
   Array<double,2> SpL;   //Sp(left) operator
 };
+
+//template function prototypes
+template<typename T> Array<T,2> reduceM2M2(const Array<T,4>&, const int);
+void EigenValuesLAN(Array<double,4>&, Array<double,2>&, const int, double *);
+void DMlargeEigen(Array<double,2>&, Array<double,2>&, const int, const int);
+void BlockWrite(BLOCK *, const int, char []);
+void BlockRead(BLOCK *, const int, char []);
 
 int main()
 {
@@ -33,12 +35,12 @@ int main()
   int sites;     //# sites
   double Eval;   //Eigenvalue
   BLOCK blk;
-  ofstream fout;
   char fname[7];
- 
-  fname[0] = '0'; fname[1] = '0'; fname[2] = '0'; 
+
+  //initialize filename
+  fname[0] = '.'; fname[1] = '0'; fname[2] = '0';
   fname[3] = '.';
-  fname[4] = 'E'; fname[5] = 'n'; fname[6] = 'v';
+  fname[4] = 'e'; fname[5] = 'n'; fname[6] = 'v';
 
   cout<<"# states to keep: ";
   cin>>m;
@@ -177,17 +179,7 @@ int main()
 
   }//end while
 
-  blk.size = sites-1;
-  fname[2] = 48 + (blk.size)%10;          //some ASCII crap
-  fname[1] = 48 + (blk.size-blk.size%10)/100;
-  fname[0] = 48;
-  fout.open(fname,ios::out);
-  fout << blk.size <<endl;
-  fout << blk.HAp ;
-  fout << blk.SzL ;
-  fout << blk.SpL ;
-  fout << blk.SmL ;
-  fout.close();
+  BlockWrite(&blk,sites-1,fname);
   
   OO.resize(m,(2*st));   
   OT.resize((2*st),m);  
@@ -232,6 +224,8 @@ int main()
     if (iter == 1) blk.SmL.resize(m,m);
     Hl = sum(SmAB(i,k)*OT(k,j),k);  
     blk.SmL = sum(OO(i,k)*Hl(k,j),k);
+
+   BlockWrite(&blk, sites, fname);
     
    if (iter == 1) TSR.resize(m,2,m,2);
     // Add a single spin  (m*m*2*2 tensor)
@@ -272,6 +266,10 @@ int main()
 
   }//iter
 
+  BlockRead(&blk,5,fname);
+
+  cout<<blk.SzL;
+
   return 0;
 }
 
@@ -300,3 +298,44 @@ Array<T,2> reduceM2M2(const Array<T,4>& T2, const int m)
 
 }
 
+/*****************************************************************/
+void BlockWrite(BLOCK *blk, const int sites, char fname[])
+{
+  ofstream fout;  
+ 
+  blk->size = sites;
+  fname[2] = 48 + (blk->size)%10;          //some ASCII crap
+//  fname[1] = 48 + (blk->size-blk->size%10)/100;
+//  fname[0] = 48;
+
+  fout.open(fname,ios::out);
+  fout << blk->size <<endl;
+  fout << blk->HAp ;
+  fout << blk->SzL ;
+  fout << blk->SpL ;
+  fout << blk->SmL ;
+  fout.close();
+
+} //BlockWrite
+
+/*****************************************************************/
+void BlockRead(BLOCK *blk, const int sites, char fname[])
+{
+  ifstream fin;  
+ 
+  blk->size = sites;
+  fname[2] = 48 + (blk->size)%10;          //some ASCII crap
+//  fname[1] = 48 + (blk->size-blk->size%10)/100;
+//  fname[0] = 48;
+
+  fin.open(fname,ios::in);
+  fin >> blk->size; 
+  fin >> blk->HAp ;
+  fin >> blk->SzL ;
+  fin >> blk->SpL ;
+  fin >> blk->SmL ;
+  fin.close();
+
+//  cout<<blk->HAp;
+
+}

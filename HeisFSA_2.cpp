@@ -39,9 +39,9 @@ int main()
   char fname[7];
 
   //initialize filename
-  fname[0] = '.'; fname[1] = '0'; fname[2] = '0';
-  fname[3] = '.';
-  fname[4] = 'e'; fname[5] = 'n'; fname[6] = 'v';
+  fname[0] = '.'; fname[1] = 48;  //ASCII for 0
+  fname[4] = '.'; fname[5] = 'e'; 
+  fname[6] = 'n'; //fname[7] = 'v';
 
   cout<<"# states to keep: ";
   cin>>m;
@@ -102,7 +102,7 @@ int main()
   sites = 2;
 
 
-  /******infinite system algorithm loop first iteration**********/
+  /******infinite system algorithm loop   ***********************/
   /******build system until number of desired states m **********/
 
   truncflag = 0;
@@ -114,7 +114,10 @@ int main()
   
     EigenValuesLAN(Habcd,Psi,(4*st*st),&Eval);
     
-    cout<<"sites: "<<2.0*sites;
+//     cout<<"sites: "<<2.0*sites;
+//     if (truncflag == 0) cout<<" e ";
+//     else cout<<" t ";
+    cout<<2.0*sites<<" "<<1.0/(2.0*sites);
     cout<<" "<<Eval/(2.0*sites)<<endl;
     
     rhoTSR = 0;
@@ -138,11 +141,12 @@ int main()
       st *= 2;
     }
     else {            // TRUNCATION
-      if (truncflag == 0){
+      if (truncflag == 0 || truncflag == 3){
 	OO.resize(m,2*st);
 	OT.resize(2*st,m);
-	truncflag = 1;
-	  }
+	Hl.resize(2*st,m);
+	truncflag ++; // 1 or 4
+      }
       DMlargeEigen(rhoTSR, OO, 2*st, m);   
       for (i1=0; i1<2*st; i1++)
 	for (i2=0; i2< m; i2++)
@@ -151,8 +155,7 @@ int main()
     
     if (truncflag < 2){
       if (truncflag == 1) {
-	truncflag = 2;
-	Hl.resize(2*st,m);
+	truncflag = 2;	
 	st = m;
 	blk.HAp.resize(m,m);
 	blk.SzL.resize(m,m);
@@ -210,6 +213,9 @@ int main()
       rhoTSR.resize(2*st,2*st);
     }
 
+    //fix this: inside BlockWrite function
+    fname[3] = 48;// + (sites)%10;          //some ASCII crap
+    fname[2] = 48;// + sites/10;
     BlockWrite(&blk,sites,fname);
 
     sites += 1;    
@@ -253,11 +259,8 @@ Array<T,2> reduceM2M2(const Array<T,4>& T2, const int m)
 void BlockWrite(BLOCK *blk, const int sites, char fname[])
 {
   ofstream fout;  
- 
+
   blk->size = sites;
-  fname[2] = 48 + (blk->size)%10;          //some ASCII crap
-//  fname[1] = 48 + (blk->size-blk->size%10)/100;
-//  fname[0] = 48;
 
   fout.open(fname,ios::out);
   fout << blk->size <<endl;

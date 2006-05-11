@@ -233,57 +233,77 @@ int main()
 
   /******FINITE system algorithm loop   ***********************/  
 
-  Esites = NumS - sites -1;
-  cout<<"E "<<Esites<<endl;
+//   cout<<"E "<<Esites<<endl;
 
-  while (sites < NumS-1){
+  for (iter=0; iter<NumI; iter++){
+    
+    while (sites < NumS-3){
+      
+      Esites = NumS - sites -1;
+      fname[3] = 48 + (Esites)%10;          //some ASCII crap
+      fname[2] = 48 + Esites/10;
+      BlockRead(&blkR,Esites,fname);
+      if (Esites != blkR.size) cout<<"E block read error"<<endl;
+      
+      Habcd = blkL.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkR.HAB(j,l) +
+	SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
+      
+      //     blkL.SzB(i,k)*blkR.SzB(j,l)+ 0.5*blkL.SpB(i,k)*blkR.SmB(j,l) 
+      //     + 0.5*blkL.SmB(i,k)*blkR.SpB(j,l);
+      
+      EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
+      
+      cout<<sites<<" "<<sites+Esites+1;
+      cout<<" "<<Eval/(sites+Esites+1)<<endl;
+      
+      rhoTSR = 0;
+      for (i1=0; i1< 2*st; i1++)
+	for (i1p=0; i1p< 2*st; i1p++)
+	  for (i2=0; i2< 2*st; i2++)
+	    rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
+      
+      DMlargeEigen(rhoTSR, OO, 2*st, m);   
+      for (i1=0; i1<2*st; i1++)
+	for (i2=0; i2< m; i2++)
+	  OT(i1,i2) = OO(i2,i1);
+      
+      Hl = sum(blkL.HAB(i,k)*OT(k,j),k);   //Ha'
+      blkL.HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
+      
+      Hl = sum(SzAB(i,k)*OT(k,j),k);  
+      blkL.SzB = sum(OO(i,k)*Hl(k,j),k);    
+      
+      Hl = sum(SpAB(i,k)*OT(k,j),k);  
+      blkL.SpB = sum(OO(i,k)*Hl(k,j),k);
+    
+      Hl = sum(SmAB(i,k)*OT(k,j),k);  
+      blkL.SmB = sum(OO(i,k)*Hl(k,j),k);
+      
+      //add a site to left block
+      TSR = blkL.HAp(i,k)*I2(j,l) + blkL.SzB(i,k)*Sz(j,l)+ 
+	0.5*blkL.SpB(i,k)*Sm(j,l) + 0.5*blkL.SmB(i,k)*Sp(j,l) ;
+      blkL.HAB = reduceM2M2(TSR,st);
+      
+      blkL.size = sites;
+      //fix this: inside BlockWrite function
+      fname[3] = 48 + (sites)%10;          //some ASCII crap
+      fname[2] = 48 + sites/10;
+      BlockWrite(&blkL,sites,fname);
+      
+      sites ++;    //in SYSTEM block
+    }//while
 
-    fname[3] = 48 + (Esites)%10;          //some ASCII crap
-    fname[2] = 48 + Esites/10;
-    BlockRead(&blkR,5,fname);
-    if (Esites != blkR.size) cout<<"E block read error"<<endl;
-    
-    Habcd = blkL.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkR.HAB(j,l) +
-      SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
-    
-    //     blkL.SzB(i,k)*blkR.SzB(j,l)+ 0.5*blkL.SpB(i,k)*blkR.SmB(j,l) 
-    //     + 0.5*blkL.SmB(i,k)*blkR.SpB(j,l);
-    
-    EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
-    
-    cout<<blkL.size+blkR.size+2<<endl;
-    cout<<" "<<Eval/(blkL.size+blkR.size+2)<<endl;
-    
-    DMlargeEigen(rhoTSR, OO, 2*st, m);   
-    for (i1=0; i1<2*st; i1++)
-      for (i2=0; i2< m; i2++)
-	OT(i1,i2) = OO(i2,i1);
-    
-    Hl = sum(blkL.HAB(i,k)*OT(k,j),k);   //Ha'
-    blkL.HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
-    
-    Hl = sum(SzAB(i,k)*OT(k,j),k);  
-    blkL.SzB = sum(OO(i,k)*Hl(k,j),k);    
-    
-    Hl = sum(SpAB(i,k)*OT(k,j),k);  
-    blkL.SpB = sum(OO(i,k)*Hl(k,j),k);
-    
-    Hl = sum(SmAB(i,k)*OT(k,j),k);  
-    blkL.SmB = sum(OO(i,k)*Hl(k,j),k);
-    
-    TSR = blkL.HAp(i,k)*I2(j,l) + blkL.SzB(i,k)*Sz(j,l)+ 
-      0.5*blkL.SpB(i,k)*Sm(j,l) + 0.5*blkL.SmB(i,k)*Sp(j,l) ;
-    blkL.HAB = reduceM2M2(TSR,st);
-    
-    blkL.size = sites;
-    //fix this: inside BlockWrite function
-    fname[3] = 48 + (sites)%10;          //some ASCII crap
-    fname[2] = 48 + sites/10;
-    BlockWrite(&blkL,sites,fname);
-    
-    sites ++;    //in SYSTEM block
-    
-  }
+    cout<<blkL.size<<endl;
+    sites = 3;
+    cout<<sites<<endl;
+
+    fname[3] = 48 + (sites-1)%10;          //some ASCII crap
+    fname[2] = 48 + (sites-1)/10;
+    BlockRead(&blkR,sites-1,fname);
+
+    sites++;
+
+  }//Iter
     
 //   BlockRead(&blkL,5,fname);
 

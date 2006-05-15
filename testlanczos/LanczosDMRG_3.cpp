@@ -261,9 +261,13 @@ int LanczosED(Array<double,2>& Ham, const int N)
 
   cout<<Psi<<" Psi \n";
 
+  double Etemp;
+  Etemp = 0;
   V2 = sum(Ham(i,j)*Psi(j),j);
   for (ii=0;ii<N;ii++)
-    cout<<ii<<" "<<V2(ii)/Psi(ii)<<" EVdiv \n";
+    Etemp += Psi(ii)*V2(ii);
+//    cout<<ii<<" "<<V2(ii)/Psi(ii)<<" EVdiv \n";
+  cout<<Etemp<<" EVdiv \n";
 
   return 0;
   

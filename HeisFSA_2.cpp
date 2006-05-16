@@ -38,6 +38,7 @@ int main()
   int Esites;          //# sites (ENVIRONMENT)
   double Eval;   //Eigenvalue
   BLOCK blkL, blkR;
+  int FSAend;
   char fname[7];
 
   //initialize filename
@@ -234,10 +235,12 @@ int main()
   /******FINITE system algorithm loop   ***********************/  
 
 //   cout<<"E "<<Esites<<endl;
-
+  
+  FSAend = 3;
+  
   for (iter=0; iter<NumI; iter++){
     
-    while (sites < NumS-3){
+    while (sites < NumS-FSAend){
       
       Esites = NumS - sites -1;
       fname[3] = 48 + (Esites)%10;          //some ASCII crap
@@ -293,15 +296,14 @@ int main()
       sites ++;    //in SYSTEM block
     }//while
 
-    cout<<blkL.size<<endl;
-    sites = 3;
-    cout<<sites<<endl;
+    cout<<"end "<<blkL.size<<" "<<sites<<endl;
+    sites = FSAend;
 
     fname[3] = 48 + (sites-1)%10;          //some ASCII crap
     fname[2] = 48 + (sites-1)/10;
-    BlockRead(&blkR,sites-1,fname);
+    BlockRead(&blkL,sites-1,fname);
 
-    sites++;
+    //    sites++;
 
   }//Iter
     

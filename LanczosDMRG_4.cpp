@@ -184,7 +184,7 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
 	for (ii=1;ii<=iter;ii++)
 	  if (d(ii) < d(min))  min = ii;
 	
-	if ( (E0 - d(min)) < 1E-4) {
+	if ( (E0 - d(min)) < 1E-5) {
 	  Lexit = 1;
 // 	  cout<<"Lanc :"<<iter<<" ";
 // 	  cout<<setprecision(12)<<d(min)<<"\n";  

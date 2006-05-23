@@ -13,10 +13,6 @@ BZ_USING_NAMESPACE(blitz)
 //block object
 struct BLOCK {
   int size;    //# of sites
-  Array<double,2> HAp;  //A' block hamiltonian
-  Array<double,2> SzB;   //Sz(left) operator  
-  Array<double,2> SmB;   //Sm(left) operator
-  Array<double,2> SpB;   //Sp(left) operator
   Array<double,2> HAB;   //A' plus right spin Hamiltonian
 };
 
@@ -37,14 +33,14 @@ int main()
   int sites, NumS;     //# sites (SYSTEM)
   int Esites;          //# sites (ENVIRONMENT)
   double Eval;   //Eigenvalue
-  BLOCK blkL, blkR;
+  BLOCK blkS, blkE;
   int FSAend;
-  char fname[7];
+  char fname[6];
 
   //initialize filename
   fname[0] = '.'; fname[1] = 48;  //ASCII for 0
-  fname[4] = '.'; fname[5] = 'e'; 
-  fname[6] = 'n'; //fname[7] = 'v';
+  fname[4] = '.'; fname[5] = 'r'; 
+  //  fname[6] = 'n'; //fname[7] = 'v';
 
   cout<<"# states to keep: ";
   cin>>m;
@@ -59,6 +55,11 @@ int main()
   Array<double,2> OO(m,4);   //the TRUNCATION matrix
   Array<double,2> OT(4,m);   // trasposed truncation matrix
   Array<double,2> Hl(4,m);   // the left half of new system H
+
+  Array<double,2> HAp;  //A' block hamiltonian
+  Array<double,2> SzB;   //Sz(left) operator  
+  Array<double,2> SmB;   //Sm(left) operator
+  Array<double,2> SpB;   //Sp(left) operator
 
   //create identity matrices
   Array<double,2> I2(2,2), I4(4,4), I2m(2*m,2*m);   
@@ -102,8 +103,8 @@ int main()
   TSR = Sp(i,k)*I2(j,l);
   Array<double,2> SpAB = reduceM2M2(TSR,2);
 
-  blkL.HAB.resize(4,4);
-  blkL.HAB = H12;
+  blkS.HAB.resize(4,4);
+  blkS.HAB = H12;
   st = 2;     //start with a 2^2=4 state system
   sites = 2;  //in SYSTEM block
 
@@ -115,7 +116,7 @@ int main()
 
   while (sites <= (NumS/2-1) ) {
 
-    Habcd = blkL.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkL.HAB(j,l) +
+    Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
       SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
   
     EigenValuesLAN(Habcd,Psi,(4*st*st),&Eval);
@@ -140,10 +141,10 @@ int main()
 	for (i2=0; i2< 2*st; i2++)
 	  OT(i1,i2) = OO(i2,i1); 
       Hl.resize(2*st,2*st);
-      blkL.HAp.resize(2*st,2*st);
-      blkL.SzB.resize(2*st,2*st);
-      blkL.SpB.resize(2*st,2*st);
-      blkL.SmB.resize(2*st,2*st);
+      HAp.resize(2*st,2*st);
+      SzB.resize(2*st,2*st);
+      SpB.resize(2*st,2*st);
+      SmB.resize(2*st,2*st);
       st *= 2;
     }
     else {            // TRUNCATION
@@ -163,32 +164,32 @@ int main()
       if (truncflag == 1) {
 	truncflag = 2;	
 	st = m;
-	blkL.HAp.resize(m,m);
-	blkL.SzB.resize(m,m);
-	blkL.SpB.resize(m,m);
-	blkL.SmB.resize(m,m);
+	HAp.resize(m,m);
+	SzB.resize(m,m);
+	SpB.resize(m,m);
+	SmB.resize(m,m);
       }
       
       TSR.resize(st,2,st,2);
     }
 
     //transform Operator Matrices to new basis
-    Hl = sum(blkL.HAB(i,k)*OT(k,j),k);   //Ha'
-    blkL.HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
+    Hl = sum(blkS.HAB(i,k)*OT(k,j),k);   //Ha'
+    HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
     
     Hl = sum(SzAB(i,k)*OT(k,j),k);  
-    blkL.SzB = sum(OO(i,k)*Hl(k,j),k);    
+    SzB = sum(OO(i,k)*Hl(k,j),k);    
     
     Hl = sum(SpAB(i,k)*OT(k,j),k);  
-    blkL.SpB = sum(OO(i,k)*Hl(k,j),k);
+    SpB = sum(OO(i,k)*Hl(k,j),k);
     
     Hl = sum(SmAB(i,k)*OT(k,j),k);  
-    blkL.SmB = sum(OO(i,k)*Hl(k,j),k);
+    SmB = sum(OO(i,k)*Hl(k,j),k);
     
-    TSR = blkL.HAp(i,k)*I2(j,l) + blkL.SzB(i,k)*Sz(j,l)+ 
-      0.5*blkL.SpB(i,k)*Sm(j,l) + 0.5*blkL.SmB(i,k)*Sp(j,l) ;
-    blkL.HAB.resize(2*st,2*st);            //Hamiltonian for next iteration
-    blkL.HAB = reduceM2M2(TSR,st);
+    TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
+      0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
+    blkS.HAB.resize(2*st,2*st);            //Hamiltonian for next iteration
+    blkS.HAB = reduceM2M2(TSR,st);
    //   cout<<HAB<<endl;
     
     if (truncflag < 3){
@@ -219,11 +220,14 @@ int main()
       rhoTSR.resize(2*st,2*st);
     }
 
-    blkL.size = sites;
+    blkS.size = sites;
     //fix this: inside BlockWrite function
     fname[3] = 48 + (sites)%10;          //some ASCII crap
     fname[2] = 48 + sites/10;
-    BlockWrite(&blkL,sites,fname);
+    fname[5] = 'l';
+    BlockWrite(&blkS,sites,fname);
+    fname[5] = 'r';
+    BlockWrite(&blkS,sites,fname);
 
     sites ++;    //in SYSTEM block
 
@@ -231,12 +235,39 @@ int main()
 
   cout<<"End ISA; sites = "<<sites<<endl;
 
+  //################################################DEBUG
+//   sites--;
+//   fname[5] = 'l';
+//   BlockRead(&blkS,sites,fname);
+//   fname[5] = 'r';
+//   BlockRead(&blkE,sites,fname);
+
+//   cout<<blkS.HAB;
+//   cout<<blkE.HAB;
+
+//   Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkE.HAB(j,l) +
+//     SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
+  
+//   EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
+//   cout<<sites<<" "<<(2*sites+2)<<" "<<Eval/(2*sites+2)<<endl;
+  
+//   fname[5] = 'r';
+//   BlockRead(&blkS,sites,fname);
+//   fname[5] = 'l';
+//   BlockRead(&blkE,sites,fname);
+
+//   Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkE.HAB(j,l) +
+//     SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
+  
+//   EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
+//   cout<<sites<<" "<<(2*sites+2)<<" "<<Eval/(2*sites+2)<<endl;
+  //################################################END DEBUG
 
   /******FINITE system algorithm loop   ***********************/  
 
 //   cout<<"E "<<Esites<<endl;
   
-  FSAend = 3;
+  FSAend = 4;
   
   for (iter=0; iter<NumI; iter++){
     
@@ -245,18 +276,16 @@ int main()
       Esites = NumS - sites -1;
       fname[3] = 48 + (Esites)%10;          //some ASCII crap
       fname[2] = 48 + Esites/10;
-      BlockRead(&blkR,Esites,fname);
-      if (Esites != blkR.size) cout<<"E block read error"<<endl;
+      if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
+      BlockRead(&blkE,Esites,fname);
+      if (Esites != blkE.size) cout<<"E block read error"<<endl;
       
-      Habcd = blkL.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkR.HAB(j,l) +
+      Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkE.HAB(j,l) +
 	SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
-      
-      //     blkL.SzB(i,k)*blkR.SzB(j,l)+ 0.5*blkL.SpB(i,k)*blkR.SmB(j,l) 
-      //     + 0.5*blkL.SmB(i,k)*blkR.SpB(j,l);
-      
+  
       EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
       
-      cout<<sites<<" "<<sites+Esites+1;
+      cout<<sites<<" "<<Esites;
       cout<<" "<<Eval/(sites+Esites+1)<<endl;
       
       rhoTSR = 0;
@@ -270,46 +299,48 @@ int main()
 	for (i2=0; i2< m; i2++)
 	  OT(i1,i2) = OO(i2,i1);
       
-      Hl = sum(blkL.HAB(i,k)*OT(k,j),k);   //Ha'
-      blkL.HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
+      Hl = sum(blkS.HAB(i,k)*OT(k,j),k);   //Ha'
+      HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
       
       Hl = sum(SzAB(i,k)*OT(k,j),k);  
-      blkL.SzB = sum(OO(i,k)*Hl(k,j),k);    
+      SzB = sum(OO(i,k)*Hl(k,j),k);    
       
       Hl = sum(SpAB(i,k)*OT(k,j),k);  
-      blkL.SpB = sum(OO(i,k)*Hl(k,j),k);
+      SpB = sum(OO(i,k)*Hl(k,j),k);
     
       Hl = sum(SmAB(i,k)*OT(k,j),k);  
-      blkL.SmB = sum(OO(i,k)*Hl(k,j),k);
+      SmB = sum(OO(i,k)*Hl(k,j),k);
       
       //add a site to left block
-      TSR = blkL.HAp(i,k)*I2(j,l) + blkL.SzB(i,k)*Sz(j,l)+ 
-	0.5*blkL.SpB(i,k)*Sm(j,l) + 0.5*blkL.SmB(i,k)*Sp(j,l) ;
-      blkL.HAB = reduceM2M2(TSR,st);
+      TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
+	0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
+      blkS.HAB = reduceM2M2(TSR,st);
       
-      blkL.size = sites;
+      blkS.size = sites;
       //fix this: inside BlockWrite function
       fname[3] = 48 + (sites)%10;          //some ASCII crap
       fname[2] = 48 + sites/10;
-      BlockWrite(&blkL,sites,fname);
+      if (iter%2 == 0) fname[5] = 'l';  else fname[5]= 'r';
+      BlockWrite(&blkS,sites,fname);
       
       sites ++;    //in SYSTEM block
     }//while
 
-    cout<<"end "<<blkL.size<<" "<<sites<<endl;
+    cout<<"end "<<blkS.size<<" "<<sites<<endl;
     sites = FSAend;
 
     fname[3] = 48 + (sites-1)%10;          //some ASCII crap
     fname[2] = 48 + (sites-1)/10;
-    BlockRead(&blkL,sites-1,fname);
+    if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
+    BlockRead(&blkS,sites-1,fname);
 
     //    sites++;
 
   }//Iter
     
-//   BlockRead(&blkL,5,fname);
+//   BlockRead(&blkS,5,fname);
 
-//   cout<<blkL.SzB;
+//   cout<<blkS.SzB;
 
   return 0;
 }
@@ -347,10 +378,6 @@ void BlockWrite(BLOCK *blk, const int sites, char fname[])
   fout.open(fname,ios::out);
   fout << blk->size <<endl;
   fout << blk->HAB ;
-  fout << blk->HAp ;
-  fout << blk->SzB ;
-  fout << blk->SpB ;
-  fout << blk->SmB ;
   fout.close();
 
 } //BlockWrite
@@ -363,10 +390,6 @@ void BlockRead(BLOCK *blk, const int sites, char fname[])
   fin.open(fname,ios::in);
   fin >> blk->size; 
   fin >> blk->HAB ;
-  fin >> blk->HAp ;
-  fin >> blk->SzB ;
-  fin >> blk->SpB ;
-  fin >> blk->SmB ;
   fin.close();
 
 //  cout<<blk->HAp;

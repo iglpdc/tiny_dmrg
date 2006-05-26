@@ -235,28 +235,12 @@ int main()
 
   cout<<"End ISA; sites = "<<sites<<endl;
 
-  //############DEBUG
-//   Esites = NumS - sites;
-//   fname[3] = 48 + (Esites)%10;          //some ASCII crap
-//   fname[2] = 48 + Esites/10;
-//   fname[5] = 'r'; 
-//   BlockRead(&blkE,Esites,fname);
-
-//   cout<<blkS.HAB<<blkE.HAB;
-  
-//   Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkE.HAB(j,l) +
-//     SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
-  
-//   EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
-//   cout<<" "<<Eval/(sites+Esites)<<endl;
-//   return 0;
-  //#########END DEBUG
 
   /******FINITE system algorithm loop   ***********************/  
 
 //   cout<<"E "<<Esites<<endl;
   
-  FSAend = 4;
+  FSAend = 5;
   
   sites= FSAend;
   fname[3] = 48 + (sites)%10;          //some ASCII crap
@@ -267,6 +251,8 @@ int main()
   for (iter=0; iter<NumI; iter++){
     
     while (sites <= NumS-FSAend){
+
+//       cout<<sites<<" before "<<blkE.HAB;
       
       Esites = NumS - sites;
       fname[3] = 48 + (Esites)%10;          //some ASCII crap
@@ -274,8 +260,10 @@ int main()
       if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
       cout<<fname[5]<<" ";
       BlockRead(&blkE,Esites,fname);
-      if (Esites != blkE.size) cout<<"E block read error"<<endl;
+      //      if (Esites != blkE.size) cout<<"E block read error"<<endl;
       
+//       cout<<Esites<<" after "<<blkE.HAB;
+
       Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkE.HAB(j,l) +
 	SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
   
@@ -284,17 +272,18 @@ int main()
       cout<<sites<<" "<<Esites;
       cout<<" "<<Eval/(sites+Esites)<<endl;
       
-      rhoTSR = 0;
-      for (i1=0; i1< 2*st; i1++)
-	for (i1p=0; i1p< 2*st; i1p++)
-	  for (i2=0; i2< 2*st; i2++)
-	    rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
+    rhoTSR = 0;
+    for (i1=0; i1< 2*st; i1++)
+      for (i1p=0; i1p< 2*st; i1p++)
+        for (i2=0; i2< 2*st; i2++)
+ 	  rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
+     
+    DMlargeEigen(rhoTSR, OO, 2*st, m);   
+    for (i1=0; i1<2*st; i1++)
+      for (i2=0; i2< m; i2++)
+	OT(i1,i2) = OO(i2,i1);
       
-      DMlargeEigen(rhoTSR, OO, 2*st, m);   
-      for (i1=0; i1<2*st; i1++)
-	for (i2=0; i2< m; i2++)
-	  OT(i1,i2) = OO(i2,i1);
-      
+      //transform Operator Matrices to new basis
       Hl = sum(blkS.HAB(i,k)*OT(k,j),k);   //Ha'
       HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
       
@@ -303,16 +292,23 @@ int main()
       
       Hl = sum(SpAB(i,k)*OT(k,j),k);  
       SpB = sum(OO(i,k)*Hl(k,j),k);
-    
+      
       Hl = sum(SmAB(i,k)*OT(k,j),k);  
       SmB = sum(OO(i,k)*Hl(k,j),k);
       
-      //add a site to the SYSTEM block
+      //Add spin to the system block only
       TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
-	0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
+	0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
       blkS.HAB = reduceM2M2(TSR,st);
       
       sites++;
+
+      //####DEBUG  read in system from file
+//       fname[3] = 48 + (sites)%10;          //some ASCII crap
+//       fname[2] = 48 + sites/10;
+//       fname[5] = 'l';
+//       BlockRead(&blkS,sites,fname);
+      //#### END DEBUG
 
       blkS.size = sites;
       fname[3] = 48 + (sites)%10;          //some ASCII crap
@@ -372,7 +368,7 @@ void BlockWrite(BLOCK *blk, const int sites, char fname[])
   ofstream fout;  
 
   fout.open(fname,ios::out);
-  fout << blk->size <<endl;
+  //  fout << blk->size <<endl;
   fout << blk->HAB ;
   fout.close();
 
@@ -384,7 +380,7 @@ void BlockRead(BLOCK *blk, const int sites, char fname[])
   ifstream fin;  
 
   fin.open(fname,ios::in);
-  fin >> blk->size; 
+  //  fin >> blk->size; 
   fin >> blk->HAB ;
   fin.close();
 

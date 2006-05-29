@@ -114,7 +114,7 @@ int main()
 
   truncflag = 0;
 
-  while (sites <= (NumS-2) ) {
+  while (sites <= (NumS)/2 ) {
 
     Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
       SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
@@ -240,9 +240,10 @@ int main()
 
 //   cout<<"E "<<Esites<<endl;
   
-  FSAend = 5;
+  FSAend = 4;
   
-  sites= FSAend;
+  //sites= FSAend;
+  sites = NumS/2;
   fname[3] = 48 + (sites)%10;          //some ASCII crap
   fname[2] = 48 + sites/10;
   fname[5] = 'l';
@@ -260,26 +261,23 @@ int main()
       if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
       cout<<fname[5]<<" ";
       BlockRead(&blkE,Esites,fname);
-      //      if (Esites != blkE.size) cout<<"E block read error"<<endl;
       
-//       cout<<Esites<<" after "<<blkE.HAB;
-
-      Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkE.HAB(j,l) +
+      Habcd = blkE.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
 	SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
   
       EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
       
       cout<<sites<<" "<<Esites;
-      cout<<" "<<Eval/(sites+Esites)<<endl;
+      cout<<" "<<Eval/(Esites+sites)<<endl;
       
     rhoTSR = 0;
-    for (i1=0; i1< 2*st; i1++)
-      for (i1p=0; i1p< 2*st; i1p++)
-        for (i2=0; i2< 2*st; i2++)
+    for (i1=0; i1< 2*m; i1++)
+      for (i1p=0; i1p< 2*m; i1p++)
+        for (i2=0; i2< 2*m; i2++)
  	  rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
      
-    DMlargeEigen(rhoTSR, OO, 2*st, m);   
-    for (i1=0; i1<2*st; i1++)
+    DMlargeEigen(rhoTSR, OO, 2*m, m);   
+    for (i1=0; i1<2*m; i1++)
       for (i2=0; i2< m; i2++)
 	OT(i1,i2) = OO(i2,i1);
       
@@ -299,7 +297,7 @@ int main()
       //Add spin to the system block only
       TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
 	0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
-      blkS.HAB = reduceM2M2(TSR,st);
+      blkS.HAB = reduceM2M2(TSR,m);
       
       sites++;
 
@@ -315,7 +313,7 @@ int main()
       fname[2] = 48 + sites/10;
       if (iter%2 == 0) fname[5] = 'l';  else fname[5]= 'r';
       BlockWrite(&blkS,sites,fname);
-      
+      //BlockRead(&blkS,sites,fname);
     }//while
 
     cout<<"end "<<blkS.size<<" "<<sites<<endl;
@@ -329,10 +327,6 @@ int main()
     //    sites++;
 
   }//Iter
-    
-//   BlockRead(&blkS,5,fname);
-
-//   cout<<blkS.SzB;
 
   return 0;
 }
@@ -369,7 +363,7 @@ void BlockWrite(BLOCK *blk, const int sites, char fname[])
 
   fout.open(fname,ios::out);
   //  fout << blk->size <<endl;
-  fout << blk->HAB ;
+  fout <<setprecision(12)<< blk->HAB ;
   fout.close();
 
 } //BlockWrite

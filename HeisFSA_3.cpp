@@ -124,7 +124,7 @@ int main()
 //     cout<<"sites: "<<2.0*sites;
 //     if (truncflag == 0) cout<<" e ";
 //     else cout<<" t ";
-    cout<<2.0*sites<<" "<<1.0/(2.0*sites);
+    cout<<"# "<<2.0*sites<<" "<<1.0/(2.0*sites);
     cout<<" "<<Eval/(2.0*sites)<<endl;
     
     rhoTSR = 0;
@@ -233,14 +233,16 @@ int main()
 
   }//end INFINITE SYSTEM ALGORITHM iteration
 
-  cout<<"End ISA; sites = "<<sites<<endl;
+  cout<<"# End ISA; sites = "<<sites<<endl;
 
 
   /******FINITE system algorithm loop   ***********************/  
 
 //   cout<<"E "<<Esites<<endl;
   
-  FSAend = 4;
+  //find maximum extent of FSA sweep
+  for (FSAend = 3; FSAend < NumS; FSAend++)
+     if (powf(2.0,FSAend) >= 2.0*m) break;
   
   //sites= FSAend;
   sites = NumS/2;
@@ -259,7 +261,7 @@ int main()
       fname[3] = 48 + (Esites)%10;          //some ASCII crap
       fname[2] = 48 + Esites/10;
       if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
-      cout<<fname[5]<<" ";
+//      cout<<fname[5]<<" ";
       BlockRead(&blkE,Esites,fname);
       
       Habcd = blkE.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
@@ -267,7 +269,8 @@ int main()
   
       EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
       
-      cout<<sites<<" "<<Esites;
+      if (iter%2 == 0) cout<<sites<<" "<<Esites;
+      else cout<<Esites<<" "<<sites;
       cout<<" "<<Eval/(Esites+sites)<<endl;
       
     rhoTSR = 0;
@@ -316,7 +319,7 @@ int main()
       //BlockRead(&blkS,sites,fname);
     }//while
 
-    cout<<"end "<<blkS.size<<" "<<sites<<endl;
+//    cout<<"end "<<blkS.size<<" "<<sites<<endl;
     sites = FSAend;
 
     fname[3] = 48 + (sites)%10;          //some ASCII crap

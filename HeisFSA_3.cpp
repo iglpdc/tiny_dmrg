@@ -5,23 +5,11 @@
 //
 //Roger Melko May 24 2006
 
+#include "heis_dmrg.h"
 #include <blitz/array.h>
 #include <fstream>
 
 BZ_USING_NAMESPACE(blitz)
-
-//block object
-struct BLOCK {
-  int size;    //# of sites
-  Array<double,2> HAB;   //A' plus right spin Hamiltonian
-};
-
-//template function prototypes
-template<typename T> Array<T,2> reduceM2M2(const Array<T,4>&, const int);
-void EigenValuesLAN(Array<double,4>&, Array<double,2>&, const int, double *);
-void DMlargeEigen(Array<double,2>&, Array<double,2>&, const int, const int);
-void BlockWrite(BLOCK *, const int, char []);
-void BlockRead(BLOCK *, const int, char []);
 
 int main()
 {

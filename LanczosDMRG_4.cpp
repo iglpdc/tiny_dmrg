@@ -1,10 +1,11 @@
 // Lanczos routine for performing ED in 
 // DMRG
 //
-//Roger Melko Feb. 23 2006
+//Roger Melko Aug. 4 2006
 
 #define STARTIT 3  //iteration which diagonz. begins
 
+#include "heis_dmrg.h"
 #include <cmath>
 #include <iomanip>
 #include <blitz/array.h>
@@ -71,7 +72,6 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
 {
 
   void Normalize(Array<double,1>&, const int);
-  int tqli2(Array<double,1>&, Array<double,1>&, int, Array<double,2>&, const int);
 
   int ii, jj;
   int iter, MAXiter, EViter;

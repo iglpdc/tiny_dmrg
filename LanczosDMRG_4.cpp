@@ -1,87 +1,92 @@
-// Lanczos routine for performing ED in 
-// DMRG
-//
-//Roger Melko Aug. 4 2006
+/**
+ * @file lanczosDMRG.cpp
+ *
+ * @brief Lanczos routine for performing ED in DMRG
+ *
+ * Roger Melko Aug. 4 2006
+ */
 
 #define STARTIT 3  //iteration which diagonz. begins
 
-#include "heis_dmrg.h"
 #include <cmath>
 #include <iomanip>
-#include <blitz/array.h>
+#include "LanczosDMRG_4.h"
 
-BZ_USING_NAMESPACE(blitz)
-
-/******************************************************************/
+/**
+ * @brief A function to calculate the groun state function using the
+ * Lanczos algorithm
+ *
+ * @param Hm is a 4-index tensor with the Hamiltonian
+ * @param Ed is a matrix with the result of the calculation
+ * @param nn is ??
+ * @param EvPrt is a pointer with ??
+ *
+ * Returns the ground state eigenvalue and eigenvector using the Lanczos function
+ *
+ */
 void EigenValuesLAN(Array<double,4>& Hm, Array<double,2>& Ed, const int nn,
 		   double *EvPtr)
-/*******************************************************************
- *** returns the ground state eigenvalue and eigenvector 
-     using the Lanczos function  ***********************************/
 {
-  //function prototypes
-  int LanczosED(Array<double,2>&, Array<double,1>&, double *, const int);
-
-  int L;
-  int lrt;
   double En;
   
   Array<double,2> Ham2d(nn,nn);
   Array<double,1> Psi(nn);  //return eigenvector
 
-  double dnn = 1.0*nn;
-  double dL = std::sqrt(dnn);
-  L = (int)dL;           //complicated integer square root?
+  //complicated integer square root?
+  int L = static_cast<int>(std::sqrt(1.0*nn));          
 
-  int c1, c2;
-  c1=0;
-  int i1, i2, i3, i4;
-  for (i1=0; i1<L; i1++)
-    for (i2=0; i2<L; i2++){
+  int c1=0;
+  int c2;
+
+  for (int i1=0; i1<L; i1++)
+  {
+    for (int i2=0; i2<L; i2++)
+    {
       c2=0;
-      for (i3=0; i3<L; i3++)
-	for (i4=0; i4<L; i4++){
+      for (int i3=0; i3<L; i3++)
+      {
+	for (int i4=0; i4<L; i4++)
+	{
 	  Ham2d(c1,c2) = Hm(i1,i2,i3,i4);  //pack as 2D matrix
 	  c2++;
 	}
+      }
       c1++;
     }
+  }
   
-  lrt = LanczosED(Ham2d, Psi, &En, nn); 
+  int lrt = LanczosED(Ham2d, Psi, &En, nn); 
   if (lrt == 1) cout<<" Lanczos early term error \n)";
 
   //repack Psi as 2D Matrix - Eigenvector
   c2 = 0;
-  double melem;
-  for (i1=0; i1<L; i1++)
-    for (i2=0; i2<L; i2++){
-      melem = Psi(c2);
-      //if (melem < 1e-16 && melem > -1e-16) melem = 0;
-      Ed(i2,i1) = melem;
-      c2++;
-    }
-
+  for (int i1=0; i1<L; i1++)
+  {
+      for (int i2=0; i2<L; i2++)
+      {
+	  double melem = Psi(c2);
+	  //if (melem < 1e-16 && melem > -1e-16) melem = 0;
+	  Ed(i2,i1) = melem;
+	  c2++;
+      }
+  }
   *EvPtr = En;  //ground state eigenvalue
-
 }
 
-/******************************************************************/
+/**
+ * @brief A function to reduce the Hamiltonian to a tri-diagonal form  
+ * 
+ */
 int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int N)
-/*******************************************************************
- ** Reduces the Hamiltonian Matrix to a tri-diagonal form  ********/
 {
-
-  void Normalize(Array<double,1>&, const int);
-
   int ii, jj;
-  int iter, MAXiter, EViter;
+  int MAXiter, EViter;
   int min;
   int Lexit;
   double Norm;
   double E0;
 
-  int LIT;   //max number of Lanczos iterations
-  LIT = 100;
+  int LIT=100;   //max number of Lanczos iterations
   
   //Matrices
   Array<double,1> V0(N);  
@@ -100,14 +105,14 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
   firstIndex i;    secondIndex j;
   thirdIndex k;   
   
-  iter = 0;
+  int iter = 0;
   //initialize 
   for (ii=0; ii<N; ii++){
     Vorig(ii) = rand()%10*0.1;  //random starting vec
     Norm = rand()%2;
     if (Norm == 0) Vorig(ii) *= -1.0000001;
   }
-  Normalize(Vorig,N);  
+  Normalize(Vorig);  
 
   for (EViter = 0; EViter < 2; EViter++) {//0=get E0 converge, 1=get eigenvec
 
@@ -232,7 +237,7 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
     
   }//repeat (EViter) to transfrom eigenvalues H basis
   
-  Normalize(Psi,N);
+  Normalize(Psi);
 
 //   cout<<Psi<<" Psi \n";
 
@@ -241,42 +246,45 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
 //     cout<<ii<<" "<<V2(ii)/Psi(ii)<<" EVdiv \n";
 
   return 0;
-  
-} //LanczosED
+} 
 
-/*********************************************************************/
-void Normalize(Array<double,1>& V, const int N) 
-/*********************************************************************
-    Normalize the input vector (length N)
-***/
+/**
+ * @brief A function to normalize a wavefunction
+ *
+ * @param V the wavefunction to normalize
+ *
+ * Takes a wavefunction and normalizes it
+ */
+void Normalize(Array<double,1>& V) 
 {
-  double norm;
-  int i;
+  double norm = 0.0;           
+  int N=V.size();
 
-  norm = 0.0;             
-  for (i=0; i<N; i++)
-    norm += V(i)*V(i); //  <V|V>
+  for (int i=0; i<N; i++)
+      norm += V(i)*V(i); 
+  
   norm = sqrt(norm);
 
-  for (i=0; i<N; i++)
-    V(i) /= norm;
+  for (int i=0; i<N; i++) 
+      V(i) /= norm;
 }
 
-
-/*********************************************************************/
 #define SIGN(a,b) ((b)<0 ? -fabs(a) : fabs(a))
-int tqli2(Array<double,1>& d, Array<double,1>& e, int n, Array<double,2>& z, const int Evects)
-/***
- April 2005, Roger Melko, modified from Numerical Recipies in C v.2
- modified from www.df.unipi.it/~moruzzi/
- Diagonalizes a tridiagonal matrix: d[] is input as the diagonal elements,
- e[] as the off-diagonal.  If the eigenvalues of the tridiagonal matrix
- are wanted, input z as the identity matrix.  If the eigenvalues of the
- original matrix reduced by tred2 are desired, input z as the matrix
- output by tred2.  The kth column of z returns the normalized eigenvectors,
- corresponding to the eigenvalues output in d[k].
- Feb 23 2005: modified to use Blitz++ arrays
-***/
+/**
+ * @brief A function to diagonalize a tridiagonal matrix
+ *
+ * April 2005, Roger Melko, modified from Numerical Recipies in C v.2
+ * modified from www.df.unipi.it/~moruzzi/
+ * Diagonalizes a tridiagonal matrix: d[] is input as the diagonal elements,
+ * e[] as the off-diagonal.  If the eigenvalues of the tridiagonal matrix
+ * are wanted, input z as the identity matrix.  If the eigenvalues of the
+ * original matrix reduced by tred2 are desired, input z as the matrix
+ * output by tred2.  The kth column of z returns the normalized eigenvectors,
+ * corresponding to the eigenvalues output in d[k].
+ * Feb 23 2005: modified to use Blitz++ arrays
+ */
+int tqli2(Array<double,1>& d, Array<double,1>& e, int n, Array<double,2>& z, 
+	const int Evects)
 {
   int m,l,iter,i,k;
   double s,r,p,g,f,dd,c,b;
@@ -333,3 +341,4 @@ int tqli2(Array<double,1>& d, Array<double,1>& e, int n, Array<double,2>& z, con
   }
   return 1;
 }
+//end lanczosDMRG.cpp

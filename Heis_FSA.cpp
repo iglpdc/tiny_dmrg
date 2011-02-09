@@ -115,7 +115,7 @@ int main()
     Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
       SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
   
-    EigenValuesLAN(Habcd,Psi,(4*st*st),&Eval);
+    Eval=calculateGroundState(Habcd,Psi,(4*st*st));
     
 //     cout<<"sites: "<<2.0*sites;
 //     if (truncflag == 0) cout<<" e ";
@@ -263,7 +263,7 @@ int main()
       Habcd = blkE.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
 	SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
   
-      EigenValuesLAN(Habcd,Psi,(4*m*m),&Eval);
+      Eval=calculateGroundState(Habcd,Psi,(4*m*m));
       
       if (iter%2 == 0) cout<<sites<<" "<<Esites;
       else cout<<Esites<<" "<<sites;

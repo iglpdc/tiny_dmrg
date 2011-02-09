@@ -13,7 +13,7 @@
 #include "lanczosDMRG.h"
 
 /**
- * @brief A function to calculate the groun state function using the
+ * @brief A function to calculate the ground state function using the
  * Lanczos algorithm
  *
  * @param Hm is a 4-index tensor with the Hamiltonian
@@ -24,13 +24,9 @@
  * Returns the ground state eigenvalue and eigenvector using the Lanczos function
  *
  */
-void EigenValuesLAN(Array<double,4>& Hm, Array<double,2>& Ed, const int nn,
-		   double *EvPtr)
+double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed, const int nn)
 {
-  double En;
-  
   Array<double,2> Ham2d(nn,nn);
-  Array<double,1> Psi(nn);  //return eigenvector
 
   //complicated integer square root?
   int L = static_cast<int>(std::sqrt(1.0*nn));          
@@ -55,6 +51,9 @@ void EigenValuesLAN(Array<double,4>& Hm, Array<double,2>& Ed, const int nn,
     }
   }
   
+  Array<double,1> Psi(nn);  //return eigenvector
+  double En;                //return eigenvalue
+
   int lrt = LanczosED(Ham2d, Psi, &En, nn); 
   if (lrt == 1) cout<<" Lanczos early term error \n)";
 
@@ -70,7 +69,7 @@ void EigenValuesLAN(Array<double,4>& Hm, Array<double,2>& Ed, const int nn,
 	  c2++;
       }
   }
-  *EvPtr = En;  //ground state eigenvalue
+  return En;  //ground state eigenvalue
 }
 
 /**

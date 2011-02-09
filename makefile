@@ -6,7 +6,7 @@ LanczosDMRG_4.o: LanczosDMRG_4.cpp heis_dmrg.h
 	g++ -c -O LanczosDMRG_4.cpp
 HHtridi8.o: HHtridi8.cpp heis_dmrg.h
 	g++ -c -O HHtridi8.cpp
-Heis_ FSA.o: Heis_FSA.cpp heis_dmrg.h
+HeisFSA_3.o: Heis_FSA.cpp heis_dmrg.h
 	g++ -c -O Heis_FSA.cpp
 
 clean :

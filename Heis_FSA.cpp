@@ -1,9 +1,16 @@
-// Elementary DMRG for Heisenberg S=1/2 chain, 
-// "symmetric" infinite system algorithm to build chain
-// ED with Lanczos
-// finite system sweep - symmetric build of L and R blocks
-//
-//Roger Melko May 24 2006
+///@file Heis_FSA.cpp
+/// The main c++ file for DMRG
+///
+///@mainpage
+///@author Roger Melko and Ivan Gonzalez
+///@date February 9th, 2011
+///
+///@brief Elementry DMRG simulation for the Heisenberg chain; 
+/// \f$H= \sum_{ij} (S^x_i S^x_j + S^y_i S^y_j + \Delta S^z_i S^z_j + C) \f$
+///
+/// "symmetric" infinite system algorithm to build chain
+/// Exact diagonalization performed with Lanczos
+/// finite system sweep - symmetric build of L and R blocks
 
 #include "heis_dmrg.h"
 #include <blitz/array.h>

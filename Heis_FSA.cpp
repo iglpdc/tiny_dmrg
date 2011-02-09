@@ -30,11 +30,12 @@ int main()
   double Eval;   //Eigenvalue
   BLOCK blkS, blkE;
   int FSAend;
-  char fname[6];
+  char fname[7];
 
   //initialize filename
   fname[0] = '.'; fname[1] = 48;  //ASCII for 0
   fname[4] = '.'; fname[5] = 'r'; 
+  fname[6] = '\0';
   //  fname[6] = 'n'; //fname[7] = 'v';
 
   cout<<"# states to keep: ";

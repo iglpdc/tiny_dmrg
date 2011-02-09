@@ -5,11 +5,18 @@
 
 BZ_USING_NAMESPACE(blitz)
 
-//block object
-struct BLOCK {
-  int size;    //# of sites
-  Array<double,2> HAB;   //A' plus right spin Hamiltonian
-};
+//block class
+	class BLOCK {
+		public:
+		    // number of sites in the block
+			int size;    
+
+			///A' plus right spin Hamiltonian
+			Array<double,2> HAB;   
+
+		private:
+	};
+
 
 //template function prototypes
 int tqli2(Array<double,1>&, Array<double,1>&, int, Array<double,2>&, const int);
@@ -20,5 +27,6 @@ void EigenValuesLAN(Array<double,4>&, Array<double,2>&, const int, double *);
 void DMlargeEigen(Array<double,2>&, Array<double,2>&, const int, const int);
 void BlockWrite(BLOCK *, const int, char []);
 void BlockRead(BLOCK *, const int, char []);
+
 
 #endif

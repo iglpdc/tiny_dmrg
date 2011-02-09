@@ -5,9 +5,6 @@
  *
  * Roger Melko Aug. 4 2006
  */
-
-#define STARTIT 3  //iteration which diagonz. begins
-
 #include <cmath>
 #include <iomanip>
 #include "lanczosDMRG.h"
@@ -85,6 +82,7 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
   double Norm;
   double E0;
 
+  int STARTIT=3; //iteration which diagonz. begins
   int LIT=100;   //max number of Lanczos iterations
   
   //Matrices
@@ -257,14 +255,13 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
 void Normalize(Array<double,1>& V) 
 {
   double norm = 0.0;           
-  int N=V.size();
 
-  for (int i=0; i<N; i++)
+  for (int i=0; i<V.size(); i++)
       norm += V(i)*V(i); 
   
   norm = sqrt(norm);
 
-  for (int i=0; i<N; i++) 
+  for (int i=0; i<V.size(); i++)
       V(i) /= norm;
 }
 

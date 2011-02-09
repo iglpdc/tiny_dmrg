@@ -1,13 +1,13 @@
-OBJS = Heis_FSA.o HHtridi8.o LanczosDMRG_4.o
+OBJS = Heis_FSA.o HHtridi8.o lanczosDMRG.o
 
 a.out: $(OBJS)
-	g++ $(OBJS)
-LanczosDMRG_4.o: LanczosDMRG_4.cpp heis_dmrg.h
-	g++ -c -O LanczosDMRG_4.cpp
+	g++ -O3 $(OBJS)
+lanczosDMRG.o: lanczosDMRG.cpp lanczosDMRG.h
+	g++ -c -O3 lanczosDMRG.cpp
 HHtridi8.o: HHtridi8.cpp heis_dmrg.h
-	g++ -c -O HHtridi8.cpp
-HeisFSA_3.o: Heis_FSA.cpp heis_dmrg.h
-	g++ -c -O Heis_FSA.cpp
+	g++ -c -O3 HHtridi8.cpp
+Heis_FSA.o: Heis_FSA.cpp heis_dmrg.h
+	g++ -c -O3 Heis_FSA.cpp
 
 clean :
 	rm *.o

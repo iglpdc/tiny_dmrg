@@ -10,7 +10,7 @@
 
 #include <cmath>
 #include <iomanip>
-#include "LanczosDMRG_4.h"
+#include "lanczosDMRG.h"
 
 /**
  * @brief A function to calculate the groun state function using the

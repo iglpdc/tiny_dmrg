@@ -14,7 +14,7 @@
 
 #include "heis_dmrg.h"
 #include <blitz/array.h>
-#include <fstream>
+#include "block.h"
 
 BZ_USING_NAMESPACE(blitz)
 
@@ -28,15 +28,12 @@ int main()
   int sites, NumS;     //# sites (SYSTEM)
   int Esites;          //# sites (ENVIRONMENT)
   double Eval;   //Eigenvalue
-  BLOCK blkS, blkE;
   int FSAend;
-  char fname[7];
 
-  //initialize filename
-  fname[0] = '.'; fname[1] = 48;  //ASCII for 0
-  fname[4] = '.'; fname[5] = 'r'; 
-  fname[6] = '\0';
-  //  fname[6] = 'n'; //fname[7] = 'v';
+  ///create the system block
+  BLOCK blkS;  //the system block
+  ///create the environment block
+  BLOCK blkE;  //the environment block
 
   cout<<"# states to keep: ";
   cin>>m;
@@ -218,14 +215,16 @@ int main()
 
     sites++;
 
-    blkS.size = sites;
-    //fix this: inside BlockWrite function
-    fname[3] = 48 + (sites)%10;          //some ASCII crap
-    fname[2] = 48 + sites/10;
-    fname[5] = 'l';
-    BlockWrite(&blkS,sites,fname);
-    fname[5] = 'r';
-    BlockWrite(&blkS,sites,fname);
+    blkS.size = sites;  //this is the size of the system block
+	blkS.ISAwrite(sites);
+
+//    //fix this: inside BlockWrite function
+//    fname[3] = 48 + (sites)%10;          //some ASCII crap
+//    fname[2] = 48 + sites/10;
+//    fname[5] = 'l';
+//    BlockWrite(&blkS,sites,fname);
+//    fname[5] = 'r';
+//    BlockWrite(&blkS,sites,fname);
 
   }//end INFINITE SYSTEM ALGORITHM iteration
 
@@ -242,10 +241,11 @@ int main()
   
   //sites= FSAend;
   sites = NumS/2;
-  fname[3] = 48 + (sites)%10;          //some ASCII crap
-  fname[2] = 48 + sites/10;
-  fname[5] = 'l';
-  BlockRead(&blkS,sites,fname);
+  //fname[3] = 48 + (sites)%10;          //some ASCII crap
+  //fname[2] = 48 + sites/10;
+  //fname[5] = 'l';
+  //BlockRead(&blkS,sites,fname);
+  blkS.FSAread(sites,1);
 
   for (iter=0; iter<NumI; iter++){
     
@@ -254,11 +254,11 @@ int main()
 //       cout<<sites<<" before "<<blkE.HAB;
       
       Esites = NumS - sites;
-      fname[3] = 48 + (Esites)%10;          //some ASCII crap
-      fname[2] = 48 + Esites/10;
-      if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
-//      cout<<fname[5]<<" ";
-      BlockRead(&blkE,Esites,fname);
+	  blkE.FSAread(Esites,iter);
+      //fname[3] = 48 + (Esites)%10;          //some ASCII crap
+      //fname[2] = 48 + Esites/10;
+      //if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
+      //BlockRead(&blkE,Esites,fname);
       
       Habcd = blkE.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
 	SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
@@ -308,20 +308,21 @@ int main()
       //#### END DEBUG
 
       blkS.size = sites;
-      fname[3] = 48 + (sites)%10;          //some ASCII crap
-      fname[2] = 48 + sites/10;
-      if (iter%2 == 0) fname[5] = 'l';  else fname[5]= 'r';
-      BlockWrite(&blkS,sites,fname);
-      //BlockRead(&blkS,sites,fname);
+	  blkS.FSAwrite(sites,iter);
+      //fname[3] = 48 + (sites)%10;          //some ASCII crap
+      //fname[2] = 48 + sites/10;
+      //if (iter%2 == 0) fname[5] = 'l';  else fname[5]= 'r';
+      //BlockWrite(&blkS,sites,fname);
+      ////BlockRead(&blkS,sites,fname);
     }//while
 
 //    cout<<"end "<<blkS.size<<" "<<sites<<endl;
-    sites = FSAend;
-
-    fname[3] = 48 + (sites)%10;          //some ASCII crap
-    fname[2] = 48 + (sites)/10;
-    if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
-    BlockRead(&blkS,sites,fname);
+	sites = FSAend;
+	blkS.FSAread(sites,iter);
+	//fname[3] = 48 + (sites)%10;          //some ASCII crap
+    //fname[2] = 48 + (sites)/10;
+    //if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
+    //BlockRead(&blkS,sites,fname);
 
     //    sites++;
 
@@ -355,28 +356,4 @@ Array<T,2> reduceM2M2(const Array<T,4>& T2, const int m)
 
 }
 
-/*****************************************************************/
-void BlockWrite(BLOCK *blk, const int sites, char fname[])
-{
-  ofstream fout;  
 
-  fout.open(fname,ios::out);
-  //  fout << blk->size <<endl;
-  fout <<setprecision(12)<< blk->HAB ;
-  fout.close();
-
-} //BlockWrite
-
-/*****************************************************************/
-void BlockRead(BLOCK *blk, const int sites, char fname[])
-{
-  ifstream fin;  
-
-  fin.open(fname,ios::in);
-  //  fin >> blk->size; 
-  fin >> blk->HAB ;
-  fin.close();
-
-//  cout<<blk->HAp;
-
-}

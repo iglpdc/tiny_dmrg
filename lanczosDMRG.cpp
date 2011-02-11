@@ -100,11 +100,10 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
   thirdIndex k;   
   
   int iter = 0;
-  //initialize 
-  for (int ii=0; ii<N; ii++){
-    Vorig(ii) = rand()%10*0.1;  //random starting vec
-    if ( (rand()%2) == 0) Vorig(ii) *= -1.0000001;
-  }
+  //
+  // initialize with randon numbers are normalize
+  //
+  randomize(Vorig);
   Normalize(Vorig);  
 
   for (EViter = 0; EViter < 2; EViter++) {//0=get E0 converge, 1=get eigenvec
@@ -119,8 +118,7 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
     
     V1 = sum(Ham(i,j)*V0(j),j); // V1 = H |V0> 
     
-    alpha(0) = 0;
-    for (int ii=0; ii<N; ii++) alpha(0) += V0(ii)*V1(ii);
+    alpha(0) = dotProduct(V0,V1);
     
     V1 -= alpha(0)*V0;
     beta(1) = calculateNorm(V1);
@@ -145,8 +143,7 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
       V2 = sum(Ham(i,j)*V1(j),j); // V2 = H |V1>
       //V2 -= beta(iter)*V0;
       
-      alpha(iter) = 0;
-      for (int ii=0; ii<N; ii++) alpha(iter) += V1(ii)*V2(ii);
+      alpha(iter) = dotProduct(V1,V2);
       
       V2 = V2-alpha(iter)*V1 -  beta(iter)*V0;
       beta(iter+1) = calculateNorm(V2);
@@ -236,38 +233,6 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
   return 0;
 } 
 
-/**
- * @brief A function to get the norm of a wavefunction
- *
- * @param V the wavefunction to normalize
- *
- * Takes a wavefunction and return its norm, i.e. the square 
- * root of dot product with itself
- */
-double calculateNorm(const Array<double,1>& V) 
-{
-  double norm = 0.0;           
-
-  for (int i=0; i<V.size(); i++)
-      norm += V(i)*V(i); 
- 
-  return sqrt(norm);
-}
-
-/**
- * @brief A function to normalize a wavefunction
- *
- * @param V the wavefunction to normalize
- *
- * Takes a wavefunction and normalizes it
- */
-void Normalize(Array<double,1>& V) 
-{
-  double norm = calculateNorm(V);
-
-  for (int i=0; i<V.size(); i++)
-      V(i) /= norm;
-}
 
 #define SIGN(a,b) ((b)<0 ? -fabs(a) : fabs(a))
 /**

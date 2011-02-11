@@ -1,7 +1,10 @@
 #ifndef BLOCK_H 
 #define BLOCK_H
 
-#include "heis_dmrg.h"
+#include <blitz/array.h>
+#include <fstream>
+
+BZ_USING_NAMESPACE(blitz)
 
 //block class
 class BLOCK {

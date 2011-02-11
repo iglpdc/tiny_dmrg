@@ -12,9 +12,12 @@
 /// Exact diagonalization performed with Lanczos
 /// finite system sweep - symmetric build of L and R blocks
 
-#include "heis_dmrg.h"
 #include <blitz/array.h>
 #include "block.h"
+#include "matrixManipulation.h"
+#include "lanczosDMRG.h"
+#include "HHtridi8.h"
+//#include "heis_dmrg.h"
 
 BZ_USING_NAMESPACE(blitz)
 
@@ -37,6 +40,11 @@ int main()
 
   cout<<"# states to keep: ";
   cin>>m;
+  cout<<"System size : ";
+  cin>>NumS;
+  cout<<"FSA sweeps : ";
+  cin>>NumI;
+
 
   //Matrices
   Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
@@ -75,11 +83,6 @@ int main()
   //tensor indices
   firstIndex i;    secondIndex j; 
   thirdIndex k;    fourthIndex l; 
-
-  cout<<"System size : ";
-  cin>>NumS;
-  cout<<"FSA sweeps : ";
-  cin>>NumI;
 
   //create a tensor product: two-site Hamiltonian
   TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l) ;
@@ -331,29 +334,5 @@ int main()
   return 0;
 }
 
-/*****************************************************************/
-template<typename T>
-Array<T,2> reduceM2M2(const Array<T,4>& T2, const int m)
-/****reduces a m,2,m,2 matrix to a 2m*2m matrix
-     over the direct product basis of 2 spins*************/
-{
-  int r,c;
-  Array<double,2> M4(2*m,2*m);
-
-  r=0;
-  for (int a1=0; a1<m; a1++)
-    for (int a2=0; a2<2; a2++){
-      c=0;
-      for (int a3=0; a3<m; a3++)
-	for (int a4=0; a4<2; a4++){
-	  M4(r,c) = T2(a1,a2,a3,a4);
-	  c++;
-	}
-      r++;    
-    }
-  
-  return M4;
-
-}
 
 

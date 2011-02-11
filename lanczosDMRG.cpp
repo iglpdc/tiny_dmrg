@@ -16,7 +16,6 @@
  * @param Hm is a 4-index tensor with the Hamiltonian
  * @param Ed is a matrix with the result of the calculation
  * @param nn is ??
- * @param EvPrt is a pointer with ??
  *
  * Returns the ground state eigenvalue and eigenvector using the Lanczos function
  *
@@ -75,11 +74,9 @@ double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed, const int 
  */
 int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int N)
 {
-  int ii, jj;
   int MAXiter, EViter;
   int min;
   int Lexit;
-  double Norm;
   double E0;
 
   int STARTIT=3; //iteration which diagonz. begins
@@ -104,10 +101,9 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
   
   int iter = 0;
   //initialize 
-  for (ii=0; ii<N; ii++){
+  for (int ii=0; ii<N; ii++){
     Vorig(ii) = rand()%10*0.1;  //random starting vec
-    Norm = rand()%2;
-    if (Norm == 0) Vorig(ii) *= -1.0000001;
+    if ( (rand()%2) == 0) Vorig(ii) *= -1.0000001;
   }
   Normalize(Vorig);  
 
@@ -124,20 +120,17 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
     V1 = sum(Ham(i,j)*V0(j),j); // V1 = H |V0> 
     
     alpha(0) = 0;
-    for (ii=0; ii<N; ii++) alpha(0) += V0(ii)*V1(ii);
+    for (int ii=0; ii<N; ii++) alpha(0) += V0(ii)*V1(ii);
     
-    V1 = V1- alpha(0)*V0;
-    Norm = 0;
-    for (ii=0; ii<N; ii++) Norm += V1(ii)*V1(ii);
+    V1 -= alpha(0)*V0;
+    beta(1) = calculateNorm(V1);
 
-    if (fabs(Norm) < 0.000000001){   //wavefnt Ham alread GS
+    if (fabs(pow(beta(1),2)) < 0.000000001){   //wavefnt Ham alread GS
       *En = alpha(0);
       return 1;
     }
 
-    beta(1) = sqrt(Norm);
-
-    V1 = V1/beta(1);
+    V1 /= beta(1);
 
     if (EViter == 1) Psi += V1*(Hmatrix(1,min));
     
@@ -153,14 +146,12 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
       //V2 -= beta(iter)*V0;
       
       alpha(iter) = 0;
-      for (ii=0; ii<N; ii++) alpha(iter) += V1(ii)*V2(ii);
+      for (int ii=0; ii<N; ii++) alpha(iter) += V1(ii)*V2(ii);
       
-      V2 = V2- alpha(iter)*V1 -  beta(iter)*V0;
-      Norm = 0;
-      for (ii=0; ii<N; ii++) Norm += V2(ii)*V2(ii);
-      beta(iter+1) = sqrt(Norm);
+      V2 = V2-alpha(iter)*V1 -  beta(iter)*V0;
+      beta(iter+1) = calculateNorm(V2);
       
-      V2 = V2/beta(iter+1);
+      V2 /=beta(iter+1);
 
       if (EViter == 1) {Psi += V2*(Hmatrix(iter+1,min));
 	//cout<<Psi<<" S \n";
@@ -173,7 +164,7 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
 	
 	//diagonalize tri-di matrix
 	d(0) = alpha(0);
-	for (ii=1;ii<=iter;ii++){
+	for (int ii=1;ii<=iter;ii++){
 	  d(ii) = alpha(ii);
 	  e(ii-1) = beta(ii);
 	}
@@ -183,7 +174,7 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
 	rtn = tqli2(d,e,nn,Hmatrix,0);
 	
 	min = 0;
-	for (ii=1;ii<=iter;ii++)
+	for (int ii=1;ii<=iter;ii++)
 	  if (d(ii) < d(min))  min = ii;
 	
 	if ( (E0 - d(min)) < 1E-5) {
@@ -216,19 +207,19 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
       MAXiter = iter;
       //diagonalize tri-di matrix
       d(0) = alpha(0);
-      for (ii=1;ii<=iter;ii++){
+      for (int ii=1;ii<=iter;ii++){
 	d(ii) = alpha(ii);
 	e(ii-1) = beta(ii);
       }
       e(iter) = 0;
       //calculate eigenvector
       Hmatrix = 0;
-      for (ii=0;ii<=iter;ii++)
+      for (int ii=0;ii<=iter;ii++)
 	Hmatrix(ii,ii) = 1.0; //identity matrix
       nn = iter+1;
       rtn = tqli2(d,e,nn,Hmatrix,1);
       min = 0;
-      for (ii=1;ii<=iter;ii++)
+      for (int ii=1;ii<=iter;ii++)
 	if (d(ii) < d(min))  min = ii;
     }
     
@@ -239,11 +230,29 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
 //   cout<<Psi<<" Psi \n";
 
 //   V2 = sum(Ham(i,j)*Psi(j),j);
-//   for (ii=0;ii<N;ii++)
+//   for (int ii=0;ii<N;ii++)
 //     cout<<ii<<" "<<V2(ii)/Psi(ii)<<" EVdiv \n";
 
   return 0;
 } 
+
+/**
+ * @brief A function to get the norm of a wavefunction
+ *
+ * @param V the wavefunction to normalize
+ *
+ * Takes a wavefunction and return its norm, i.e. the square 
+ * root of dot product with itself
+ */
+double calculateNorm(const Array<double,1>& V) 
+{
+  double norm = 0.0;           
+
+  for (int i=0; i<V.size(); i++)
+      norm += V(i)*V(i); 
+ 
+  return sqrt(norm);
+}
 
 /**
  * @brief A function to normalize a wavefunction
@@ -254,12 +263,7 @@ int LanczosED(Array<double,2>& Ham, Array<double,1>& Psi, double *En, const int 
  */
 void Normalize(Array<double,1>& V) 
 {
-  double norm = 0.0;           
-
-  for (int i=0; i<V.size(); i++)
-      norm += V(i)*V(i); 
-  
-  norm = sqrt(norm);
+  double norm = calculateNorm(V);
 
   for (int i=0; i<V.size(); i++)
       V(i) /= norm;

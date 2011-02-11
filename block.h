@@ -1,3 +1,10 @@
+/**
+ * @file block.h
+ *
+ * @brief A file that contains the block class used in the DMRG
+ *
+ * Roger Melko and Ivan Gonzalez 
+ */
 #ifndef BLOCK_H 
 #define BLOCK_H
 
@@ -6,12 +13,12 @@
 
 BZ_USING_NAMESPACE(blitz)
 
-//block class
+///Block class
 class BLOCK {
 	public:
-		// number of sites in the block
+		/// number of sites in the block
 		int size;    
-		///A' plus right spin Hamiltonian
+		/// A' plus right spin Hamiltonian: Blitz++ array
 		Array<double,2> HAB;   
 
 		BLOCK();
@@ -20,57 +27,59 @@ class BLOCK {
 		void FSAwrite(const int sites,const int iter);
 
 	private:
-	    //filename for storing block on disk
+	    ///filename for storing block on disk
 		char fname[7];
+
 		void Read();
 		void Write();
 };
 BLOCK::BLOCK(){
-///constructor initialize filename
+///constructor: initialize filename for writing blocks to file
   fname[0] = '.'; fname[1] = 48;  //ASCII for 0
   fname[4] = '.'; fname[5] = 'r'; 
   fname[6] = '\0';
 }
 
 void BLOCK::ISAwrite(const int sites){
-	/// rename/write wrapper for the ISA
-	fname[3] = 48 + (sites)%10;          //some ASCII crap
+/// rename/write wrapper for the ISA
+	fname[3] = 48 + (sites)%10;          //some ASCII 
 	fname[2] = 48 + sites/10;
 	fname[5] = 'l';
 	Write(); //write left block
 	fname[5] = 'r'; 
 	Write(); //write right block
 }
+
 void BLOCK::FSAread(const int sites,const int iter){
-	fname[3] = 48 + (sites)%10;          //some ASCII crap
+/// file read for the finite-system algorithm
+	fname[3] = 48 + (sites)%10;          //some ASCII 
 	fname[2] = 48 + sites/10;
 	if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
 	Read();
 }//FSAread
+
 void BLOCK::FSAwrite(const int sites,const int iter){
-      fname[3] = 48 + (sites)%10;          //some ASCII crap
+/// file write for the finite-system algorithm
+      fname[3] = 48 + (sites)%10;         //some ASCII 
       fname[2] = 48 + sites/10;
       if (iter%2 == 0) fname[5] = 'l';  else fname[5]= 'r';
       Write();
 }//FSAwrite
 
-void BLOCK::Write()
-{
+void BLOCK::Write() {
+/// opens the output file and writes the Blitz++ array
   ofstream fout;  
   fout.open(fname,ios::out);
-  //  fout << blk->size <<endl;
   fout <<setprecision(12)<<HAB ;
   fout.close();
-
 } //Write
-void BLOCK::Read()
-{
+
+void BLOCK::Read() {
+/// opens the input file and reads the Blitz++ array
   ifstream fin;  
   fin.open(fname,ios::in);
-  //  fin >> blk->size; 
   fin >> HAB ;
   fin.close();
-//  cout<<blk->HAp;
 }//Read
 
 #endif

@@ -14,7 +14,6 @@
  *  - Exact diagonalization performed with Lanczos
  *  - finite system sweep - symmetric build of L and R blocks
  */
-
 #include "blitz/array.h"
 #include "block.h"
 #include "matrixManipulation.h"
@@ -32,7 +31,6 @@ int main()
     int truncflag;
     int sites, NumS;     //# sites (SYSTEM)
     int Esites;          //# sites (ENVIRONMENT)
-    double Eval;   //Eigenvalue
     int FSAend;
 
     /** \var BLOCK blkS \brief create the system block */
@@ -51,7 +49,6 @@ int main()
     Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
 
     Array<double,4> Habcd(4,4,4,4); //superblock hamiltonian
-    //  Array<double,2> HAB(4,4);        //new SYSTEM Hamiltonian
     Array<double,2> Psi(4,4); // ground state wavefunction
     Array<double,2> rhoTSR(4,4); // reduced density matrix
     Array<double,2> OO(m,4);   //the TRUNCATION matrix
@@ -117,78 +114,74 @@ int main()
 	    I2st(i,k)*blkS.HAB(j,l)+
 	    SzAB(i,k)*SzAB(j,l)+0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
       
-	Eval=calculateGroundState(Habcd,Psi,(4*st*st));
+	double Eval=calculateGroundState(Habcd,Psi,(4*st*st));
 	
 //      cout<<"sites: "<<2.0*sites;
 //      if (truncflag == 0) cout<<" e ";
 //      else cout<<" t ";
 	cout<<"# "<<2.0*sites<<" "<<1.0/(2.0*sites);
 	cout<<" "<<Eval/(2.0*sites)<<endl;
-	
-	rhoTSR = 0;
-	for (i1=0; i1< 2*st; i1++)
-	  for (i1p=0; i1p< 2*st; i1p++)
-	    for (i2=0; i2< 2*st; i2++)
-	      rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
 
-    if (2*st <= m){     // NO TRUNCATION
-      OO.resize(2*st,2*st);
-      OT.resize(2*st,2*st);
-      DMlargeEigen(rhoTSR, OO, 2*st, 2*st);   
-      for (i1=0; i1<2*st; i1++)
-	for (i2=0; i2< 2*st; i2++)
-	  OT(i1,i2) = OO(i2,i1); 
-      Hl.resize(2*st,2*st);
-      HAp.resize(2*st,2*st);
-      SzB.resize(2*st,2*st);
-      SpB.resize(2*st,2*st);
-      SmB.resize(2*st,2*st);
-      st *= 2;
-    }
-    else {            // TRUNCATION
-      if (truncflag == 0 || truncflag == 3){
-	OO.resize(m,2*st);
-	OT.resize(2*st,m);
-	Hl.resize(2*st,m);
-	truncflag ++; // 1 or 4
-      }
-      DMlargeEigen(rhoTSR, OO, 2*st, m);   
-      for (i1=0; i1<2*st; i1++)
-	for (i2=0; i2< m; i2++)
-	  OT(i1,i2) = OO(i2,i1);
-    }
-    
-    if (truncflag < 2){
-      if (truncflag == 1) {
-	truncflag = 2;	
-	st = m;
-	HAp.resize(m,m);
-	SzB.resize(m,m);
-	SpB.resize(m,m);
-	SmB.resize(m,m);
-      }
-      
-      TSR.resize(st,2,st,2);
-    }
+	rhoTSR=calculateReducedDensityMatrix(Psi);
+	
+	if (2*st <= m){     // NO TRUNCATION
+	  
+	    OO.resize(2*st,2*st);
+	    OT.resize(2*st,2*st);
+	    DMlargeEigen(rhoTSR, OO, 2*st, 2*st);   
+	    for (i1=0; i1<2*st; i1++)
+	    for (i2=0; i2< 2*st; i2++)
+	      OT(i1,i2) = OO(i2,i1); 
+	    Hl.resize(2*st,2*st);
+	    HAp.resize(2*st,2*st);
+	    SzB.resize(2*st,2*st);
+	    SpB.resize(2*st,2*st);
+	    SmB.resize(2*st,2*st);
+	    st *= 2;
+	}
+	else {            // TRUNCATION
+	    if (truncflag == 0 || truncflag == 3){
+		OO.resize(m,2*st);
+		OT.resize(2*st,m);
+		Hl.resize(2*st,m);
+		truncflag ++; // 1 or 4
+	    }
+	    DMlargeEigen(rhoTSR, OO, 2*st, m);   
+	    for (i1=0; i1<2*st; i1++)
+		for (i2=0; i2< m; i2++)
+		    OT(i1,i2) = OO(i2,i1);
+	}
+	
+	if (truncflag < 2){
+	  if (truncflag == 1) {
+	    truncflag = 2;	
+	    st = m;
+	    HAp.resize(m,m);
+	    SzB.resize(m,m);
+	    SpB.resize(m,m);
+	    SmB.resize(m,m);
+	  }
+	  TSR.resize(st,2,st,2);
+	}
 
     //transform Operator Matrices to new basis
     Hl = sum(blkS.HAB(i,k)*OT(k,j),k);   //Ha'
     HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
-    
+
     Hl = sum(SzAB(i,k)*OT(k,j),k);  
     SzB = sum(OO(i,k)*Hl(k,j),k);    
-    
+
     Hl = sum(SpAB(i,k)*OT(k,j),k);  
     SpB = sum(OO(i,k)*Hl(k,j),k);
-    
+
     Hl = sum(SmAB(i,k)*OT(k,j),k);  
     SmB = sum(OO(i,k)*Hl(k,j),k);
-    
+
     TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
       0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
     blkS.HAB.resize(2*st,2*st);            //Hamiltonian for next iteration
     blkS.HAB = reduceM2M2(TSR,st,2);
-   //   cout<<HAB<<endl;
+    //   cout<<HAB<<endl;
     
     if (truncflag < 3){
       if  (truncflag == 2) {
@@ -221,120 +214,78 @@ int main()
     sites++;
 
     blkS.size = sites;  //this is the size of the system block
-	blkS.ISAwrite(sites);
-
-//    //fix this: inside BlockWrite function
-//    fname[3] = 48 + (sites)%10;          //some ASCII crap
-//    fname[2] = 48 + sites/10;
-//    fname[5] = 'l';
-//    BlockWrite(&blkS,sites,fname);
-//    fname[5] = 'r';
-//    BlockWrite(&blkS,sites,fname);
-
-  }//end INFINITE SYSTEM ALGORITHM iteration
-
-  cout<<"# End ISA; sites = "<<sites<<endl;
-
-
-  /******FINITE system algorithm loop   ***********************/  
-
-//   cout<<"E "<<Esites<<endl;
-  
-  //find maximum extent of FSA sweep
-  for (FSAend = 3; FSAend < NumS; FSAend++)
-     if (powf(2.0,FSAend) >= 2.0*m) break;
-  
-  //sites= FSAend;
-  sites = NumS/2;
-  //fname[3] = 48 + (sites)%10;          //some ASCII crap
-  //fname[2] = 48 + sites/10;
-  //fname[5] = 'l';
-  //BlockRead(&blkS,sites,fname);
-  blkS.FSAread(sites,1);
-
-  for (iter=0; iter<NumI; iter++){
+    blkS.ISAwrite(sites);
     
-    while (sites <= NumS-FSAend){
+    }//end INFINITE SYSTEM ALGORITHM iteration
 
-//       cout<<sites<<" before "<<blkE.HAB;
-      
-      Esites = NumS - sites;
-	  blkE.FSAread(Esites,iter);
-      //fname[3] = 48 + (Esites)%10;          //some ASCII crap
-      //fname[2] = 48 + Esites/10;
-      //if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
-      //BlockRead(&blkE,Esites,fname);
-      
-      Habcd = blkE.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
-	SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
   
-      Eval=calculateGroundState(Habcd,Psi,(4*m*m));
-      
-      if (iter%2 == 0) cout<<sites<<" "<<Esites;
-      else cout<<Esites<<" "<<sites;
-      cout<<" "<<Eval/(Esites+sites)<<endl;
-      
-    rhoTSR = 0;
-    for (i1=0; i1< 2*m; i1++)
-      for (i1p=0; i1p< 2*m; i1p++)
-        for (i2=0; i2< 2*m; i2++)
- 	  rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
+    std::cout<<"# End ISA; sites = "<<sites<<std::endl;
+
+
+    /******FINITE system algorithm loop   ***********************/  
+
+    //find maximum extent of FSA sweep
+    for (FSAend = 3; FSAend < NumS; FSAend++)
+	if (powf(2.0,FSAend) >= 2.0*m) break;
+  
+    //sites= FSAend;
+    sites = NumS/2;
+    blkS.FSAread(sites,1);
+
+  
+    for (iter=0; iter<NumI; iter++){
+    
+	while (sites <= NumS-FSAend){
+
+	    //std::cout<<sites<<" before "<<blkE.HAB;
+	    Esites = NumS - sites;
+	    blkE.FSAread(Esites,iter);
+
+	    Habcd = blkE.HAB(i,k)*I2st(j,l)+I2st(i,k)*blkS.HAB(j,l) +
+	    SzAB(i,k)*SzAB(j,l)+0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
+
+	    double Eval=calculateGroundState(Habcd,Psi,(4*m*m));
+
+	    if (iter%2 == 0) cout<<sites<<" "<<Esites;
+	    else cout<<Esites<<" "<<sites;
+	    cout<<" "<<Eval/(Esites+sites)<<endl;
+	  
+	    rhoTSR=calculateReducedDensityMatrix(Psi);
      
-    DMlargeEigen(rhoTSR, OO, 2*m, m);   
-    for (i1=0; i1<2*m; i1++)
-      for (i2=0; i2< m; i2++)
-	OT(i1,i2) = OO(i2,i1);
+	    DMlargeEigen(rhoTSR, OO, 2*m, m);   
+	    for (i1=0; i1<2*m; i1++)
+	      for (i2=0; i2< m; i2++)
+		OT(i1,i2) = OO(i2,i1);
       
-      //transform Operator Matrices to new basis
-      Hl = sum(blkS.HAB(i,k)*OT(k,j),k);   //Ha'
-      HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
-      
-      Hl = sum(SzAB(i,k)*OT(k,j),k);  
-      SzB = sum(OO(i,k)*Hl(k,j),k);    
-      
-      Hl = sum(SpAB(i,k)*OT(k,j),k);  
-      SpB = sum(OO(i,k)*Hl(k,j),k);
-      
-      Hl = sum(SmAB(i,k)*OT(k,j),k);  
-      SmB = sum(OO(i,k)*Hl(k,j),k);
-      
-      //Add spin to the system block only
-      TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
-	0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
-      blkS.HAB = reduceM2M2(TSR,m,2);
-      
-      sites++;
+	    //transform Operator Matrices to new basis
+	    Hl = sum(blkS.HAB(i,k)*OT(k,j),k);   //Ha'
+	    HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
 
-      //####DEBUG  read in system from file
-//       fname[3] = 48 + (sites)%10;          //some ASCII crap
-//       fname[2] = 48 + sites/10;
-//       fname[5] = 'l';
-//       BlockRead(&blkS,sites,fname);
-      //#### END DEBUG
+	    Hl = sum(SzAB(i,k)*OT(k,j),k);  
+	    SzB = sum(OO(i,k)*Hl(k,j),k);    
 
-      blkS.size = sites;
-	  blkS.FSAwrite(sites,iter);
-      //fname[3] = 48 + (sites)%10;          //some ASCII crap
-      //fname[2] = 48 + sites/10;
-      //if (iter%2 == 0) fname[5] = 'l';  else fname[5]= 'r';
-      //BlockWrite(&blkS,sites,fname);
-      ////BlockRead(&blkS,sites,fname);
-    }//while
+	    Hl = sum(SpAB(i,k)*OT(k,j),k);  
+	    SpB = sum(OO(i,k)*Hl(k,j),k);
 
-//    cout<<"end "<<blkS.size<<" "<<sites<<endl;
+	    Hl = sum(SmAB(i,k)*OT(k,j),k);  
+	    SmB = sum(OO(i,k)*Hl(k,j),k);
+
+	    //Add spin to the system block only
+	    TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
+	    0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
+	    blkS.HAB = reduceM2M2(TSR,m,2);
+  
+	    sites++;
+
+	    blkS.size = sites;
+	    blkS.FSAwrite(sites,iter);
+	}//while
+
+	//cout<<"end "<<blkS.size<<" "<<sites<<endl;
 	sites = FSAend;
 	blkS.FSAread(sites,iter);
-	//fname[3] = 48 + (sites)%10;          //some ASCII crap
-    //fname[2] = 48 + (sites)/10;
-    //if (iter%2 == 0) fname[5] = 'r';  else fname[5]= 'l';
-    //BlockRead(&blkS,sites,fname);
 
-    //    sites++;
-
+	//sites++;
   }//Iter
-
   return 0;
-}
-
-
-
+} // end main

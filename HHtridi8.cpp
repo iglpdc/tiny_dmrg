@@ -19,74 +19,75 @@
  * Returns the M largest eigenvectors 
  *
  */
-void DMlargeEigen(blitz::Array<double,2>& Hm, blitz::Array<double,2>& Od, const int nn, 
-		  const int mm)
+void DMlargeEigen(blitz::Array<double,2>& Hm, blitz::Array<double,2>& Od, 
+	const int nn, const int mm)
 {
-  blitz::Array<double,1> e(nn);
-  blitz::Array<double,1> d(nn); 
+    blitz::Array<double,1> e(nn);
+    blitz::Array<double,1> density_matrix_eigenvalues(nn); 
 
-  int L = nn/2;
+    //Householder reduction
+    tred3(Hm,density_matrix_eigenvalues,e,nn);
 
-  //Householder reduction
-  tred3(Hm,d,e,nn);
+    //Iterative diagonalization
+    int rtn = tqli2(density_matrix_eigenvalues,e,nn,Hm,1);
 
-  //Iterative diagonalization
-  int rtn = tqli2(d,e,nn,Hm,1);
+    //now Hmatrix[j][i] contains the eigenvectors corresponding
+    //to d[i]
 
-  //now Hmatrix[j][i] contains the eigenvectors corresponding
-  //to d[i]
+    // output eigenvalues d[] and corresponding evectors
+    // m LARGEST
+    //
+    double sum_of_density_matrix_eigenvalues=sum(density_matrix_eigenvalues);
 
-  // output eigenvalues d[] and corresponding evectors
-  // m LARGEST
+    //double Esum = 0;
+    //for (int i1=0; i1<nn; i1++){
+    // Esum += d(i1);
+    ////      cout<<d[i1]<<" | ";
+    ////      for (int i2=0; i2<nn; i2++)
+    ////        cout<<Hmatrix[i2][i1]<<" ";
+    ////      cout<<endl;
+    //}
+    if (fabs(1.0-sum_of_density_matrix_eigenvalues) > 0.00001)
+	std::cout<<"sum_of_density_matrix_eigenvalues error:"\
+	    <<sum_of_density_matrix_eigenvalues<<std::endl;	
 
-   double Esum = 0;
-   for (int i1=0; i1<nn; i1++){
-     Esum += d(i1);
-//      cout<<d[i1]<<" | ";
-//      for (int i2=0; i2<nn; i2++)
-//        cout<<Hmatrix[i2][i1]<<" ";
-//      cout<<endl;
-   }
-   if (Esum < 0.999999 || Esum > 1.00001)
-     std::cout<<"Esum error:"<<Esum<<std::endl;	
+    //  int *inx = new int[nn];
+    blitz::Array<int,1> inx(nn);
 
-//  int *inx = new int[nn];
-  blitz::Array<int,1> inx(nn);
-  
-  int i,j;
-  for (j=0; j<nn; j++) inx(j)=j;
-  double a;
-  int b;
-  for (j=1; j<nn; j++){         //STRIAGHT INSERTION SORT O(N^2)    
-    a = d(j);
+    int i,j;
+    for (j=0; j<nn; j++) inx(j)=j;
+    double a;
+    int b;
+    for (j=1; j<nn; j++){         //STRIAGHT INSERTION SORT O(N^2)    
+    a = density_matrix_eigenvalues(j);
     b = inx(j);
     i=j-1;
-    while (i>=0 && d(i) >a){
-      d(i+1)=d(i);
+    while (i>=0 && density_matrix_eigenvalues(i) >a){
+      density_matrix_eigenvalues(i+1)=density_matrix_eigenvalues(i);
       inx(i+1)=inx(i);
       i--;
     }
-    d(i+1)=a;
+    density_matrix_eigenvalues(i+1)=a;
     inx(i+1)=b;
-  }
+    }
 
-   double Addx = 0;
-   j=nn-1;
-   for (int kk=0; kk<mm; kk++){
-     Addx += d(j);
+    double Addx = 0;
+    j=nn-1;
+    for (int kk=0; kk<mm; kk++){
+     Addx += density_matrix_eigenvalues(j);
      j--;
-   }
-//   std::cout<<"Addx "<<" "<<1.0-Addx<<endl;
+    }
+    //   std::cout<<"Addx "<<" "<<1.0-Addx<<endl;
 
-  j=nn-1;
-  for (int  kk=0; kk<mm; kk++){
-//      std::cout<<d[j]<<" | ";
+    j=nn-1;
+    for (int  kk=0; kk<mm; kk++){
+    //      std::cout<<d[j]<<" | ";
     for (i=0; i<nn; i++){
       Od(kk,i) = Hm(i,inx(j));   //define the truncation matrix
-//        std::cout<<Hmatrix[i][inx[j]]<<" ";
+    //        std::cout<<Hmatrix[i][inx[j]]<<" ";
     }
     j--;
-//      std::cout<<endl;
-  } 
+    //      std::cout<<endl;
+    } 
 
 }//EigenValues of density matrix

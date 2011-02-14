@@ -1,0 +1,4 @@
+#!/bin/bash
+svn export `svn info | grep URL: | awk '{print $2}'` ../testdmrg_tarball
+; tar -cvzf ../dmrg_rev$(rev).tar.gz ../testdmrg_tarball; rm -rf
+../testdmrg_tarball;

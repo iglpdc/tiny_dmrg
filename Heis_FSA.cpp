@@ -1,5 +1,6 @@
-/** @file Heis_FSA.cpp
- *  @brief The main c++ file for the DMRG
+/** 
+ * @file Heis_FSA.cpp
+ * @brief The main c++ file for the DMRG
  * 
  * @mainpage
  * @author Roger Melko 
@@ -14,7 +15,7 @@
  *  - finite system sweep - symmetric build of L and R blocks
  */
 
-#include <blitz/array.h>
+#include "blitz/array.h"
 #include "block.h"
 #include "matrixManipulation.h"
 #include "lanczosDMRG.h"

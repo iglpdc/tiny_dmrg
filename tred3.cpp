@@ -9,7 +9,7 @@
 #define EVECTS 1  
 
 #include <cmath>
-#include <blitz/array.h>
+#include "blitz/array.h"
 #include "tred3.h"
 
 //BZ_USING_NAMESPACE(blitz)

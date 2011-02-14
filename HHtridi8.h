@@ -9,6 +9,6 @@
 #ifndef HHTRIDI_H
 #define HHTRIDI_H  
 
-void DMlargeEigen(blitz::Array<double,2>& Hm, blitz::Array<double,2>& Od, const int nn, 
-		  const int mm);
+void DMlargeEigen(blitz::Array<double,2>& Hm, blitz::Array<double,2>& Od, 
+	const int nn, const int mm);
 #endif //HHTRIDI_H 

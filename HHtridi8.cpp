@@ -8,7 +8,7 @@
 //set the below value to "1" if you want the eigenvectors, and to "0" if not
 #define EVECTS 1  
 
-#include <blitz/array.h>
+#include "blitz/array.h"
 #include "tred3.h"
 #include "tqli2.h"
 #include "HHtridi8.h"

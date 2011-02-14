@@ -7,10 +7,11 @@
  */
 #include <cmath>
 #include <iomanip>
+#include "blitz/array.h"
 #include "lanczosDMRG_helpers.h"
-#include "lanczosDMRG.h"
 #include "tqli2.h"
 #include "matrixManipulation.h"
+#include "lanczosDMRG.h"
 
 BZ_USING_NAMESPACE(blitz)
 

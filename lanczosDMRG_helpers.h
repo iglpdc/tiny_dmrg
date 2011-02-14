@@ -1,8 +1,8 @@
 #ifndef LANCZOS_DMRG_HELPERS_H
 #define LANCZOS_DMRG_HELPERS_H
  
-#include <blitz/array.h>
 #include <cmath>  // for rand()
+#include "blitz/array.h"
 
 /**
  * @brief A function to do the dot product of two wavefunctions
@@ -10,7 +10,8 @@
  * @param V1 the wavefunction to multiply
  * @param V2 the wavefunction to multiply
  */
-double dotProduct(const blitz::Array<double,1>& V1, const blitz::Array<double,1>& V2)
+inline double dotProduct(const blitz::Array<double,1>& V1, 
+	const blitz::Array<double,1>& V2)
 {
     return sum(V1*V2);
 }
@@ -22,7 +23,7 @@ double dotProduct(const blitz::Array<double,1>& V1, const blitz::Array<double,1>
  * Takes a wavefunction and return its norm, i.e. the square 
  * root of dot product with itself
  */
-double calculateNorm(const blitz::Array<double,1>& V) 
+inline double calculateNorm(const blitz::Array<double,1>& V) 
 {
   double norm = dotProduct(V,V);           
   return sqrt(norm);
@@ -35,7 +36,7 @@ double calculateNorm(const blitz::Array<double,1>& V)
  *
  * Takes a wavefunction fills all its components with a random real number
  */
-void randomize(blitz::Array<double,1>& V) 
+inline void randomize(blitz::Array<double,1>& V) 
 {
   for (int i=0; i<V.size(); i++)
   {
@@ -51,11 +52,9 @@ void randomize(blitz::Array<double,1>& V)
  *
  * Takes a wavefunction and normalizes it
  */
-void Normalize(blitz::Array<double,1>& V) 
+inline void Normalize(blitz::Array<double,1>& V) 
 {
   double norm = calculateNorm(V);
-
-  for (int i=0; i<V.size(); i++)
-      V(i) /= norm;
+  V/=norm;
 }
 #endif // LANCZOS_DMRG_HELPERS_H

@@ -7,7 +7,7 @@
  */
 #include <cmath>
 #include <iomanip>
-#include <blitz/array.h>
+#include "blitz/array.h"
 #include "tqli2.h"
 
 #define SIGN(a,b) ((b)<0 ? -fabs(a) : fabs(a))

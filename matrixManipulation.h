@@ -1,7 +1,7 @@
 #ifndef MATRIX_MANIPULATION_H
 #define MATRIX_MANIPULATION_H
  
-#include <blitz/array.h>
+#include "blitz/array.h"
 
 /**
  * @brief A function to reduce a 4-index tensor to a matrix

@@ -25,111 +25,111 @@ BZ_USING_NAMESPACE(blitz)
 
 int main()
 {
-  int iter, NumI;
-  int i1, i1p, i2, i2p, i3, i4; 
-  int b1; 
-  int m, st;     //# states
-  int truncflag;
-  int sites, NumS;     //# sites (SYSTEM)
-  int Esites;          //# sites (ENVIRONMENT)
-  double Eval;   //Eigenvalue
-  int FSAend;
+    int iter, NumI;
+    int i1, i1p, i2, i2p, i3, i4; 
+    int b1; 
+    int m, st;     //# states
+    int truncflag;
+    int sites, NumS;     //# sites (SYSTEM)
+    int Esites;          //# sites (ENVIRONMENT)
+    double Eval;   //Eigenvalue
+    int FSAend;
 
-  /** \var BLOCK blkS \brief create the system block */
-  BLOCK blkS;  //the system block
-  ///create the environment block
-  BLOCK blkE;  //the environment block
+    /** \var BLOCK blkS \brief create the system block */
+    BLOCK blkS;  //the system block
+    ///create the environment block
+    BLOCK blkE;  //the environment block
 
-  cout<<"# states to keep: ";
-  cin>>m;
-  cout<<"System size : ";
-  cin>>NumS;
-  cout<<"FSA sweeps : ";
-  cin>>NumI;
+    cout<<"# states to keep: ";
+    cin>>m;
+    cout<<"System size : ";
+    cin>>NumS;
+    cout<<"FSA sweeps : ";
+    cin>>NumI;
 
+    //Matrices
+    Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
 
-  //Matrices
-  Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
+    Array<double,4> Habcd(4,4,4,4); //superblock hamiltonian
+    //  Array<double,2> HAB(4,4);        //new SYSTEM Hamiltonian
+    Array<double,2> Psi(4,4); // ground state wavefunction
+    Array<double,2> rhoTSR(4,4); // reduced density matrix
+    Array<double,2> OO(m,4);   //the TRUNCATION matrix
+    Array<double,2> OT(4,m);   // trasposed truncation matrix
+    Array<double,2> Hl(4,m);   // the left half of new system H
 
-  Array<double,4> Habcd(4,4,4,4); //superblock hamiltonian
-//  Array<double,2> HAB(4,4);        //new SYSTEM Hamiltonian
-  Array<double,2> Psi(4,4); // ground state wavefunction
-  Array<double,2> rhoTSR(4,4); // reduced density matrix
-  Array<double,2> OO(m,4);   //the TRUNCATION matrix
-  Array<double,2> OT(4,m);   // trasposed truncation matrix
-  Array<double,2> Hl(4,m);   // the left half of new system H
+    Array<double,2> HAp;  //A' block hamiltonian
+    Array<double,2> SzB;   //Sz(left) operator  
+    Array<double,2> SmB;   //Sm(left) operator
+    Array<double,2> SpB;   //Sp(left) operator
 
-  Array<double,2> HAp;  //A' block hamiltonian
-  Array<double,2> SzB;   //Sz(left) operator  
-  Array<double,2> SmB;   //Sm(left) operator
-  Array<double,2> SpB;   //Sp(left) operator
+    //create identity matrices
+    Array<double,2> I2(2,2), I4(4,4), I2m(2*m,2*m);   
+    I2=0.0; I4=0.0; I2m=0.0;
+    for (b1=0; b1<2; b1++) I2(b1,b1)=1.0;
+    for (b1=0; b1<4; b1++) I4(b1,b1)=1.0;
+    for (b1=0; b1<(2*m); b1++) I2m(b1,b1)=1.0;
+    Array<double,2> I2st(4,4);
+    I2st = I4;
 
-  //create identity matrices
-  Array<double,2> I2(2,2), I4(4,4), I2m(2*m,2*m);   
-  I2=0.0; I4=0.0; I2m=0.0;
-  for (b1=0; b1<2; b1++) I2(b1,b1)=1.0;
-  for (b1=0; b1<4; b1++) I4(b1,b1)=1.0;
-  for (b1=0; b1<(2*m); b1++) I2m(b1,b1)=1.0;
-  Array<double,2> I2st(4,4);
-  I2st = I4;
-
-  // Create pauli matrices
-  Array<double,2> Sz(2,2), Sp(2,2), Sm(2,2);
-  Sz = 0.5, 0,
+    // Create pauli matrices
+    Array<double,2> Sz(2,2), Sp(2,2), Sm(2,2);
+    Sz = 0.5, 0,
        0, -0.5;
-  Sp = 0, 1.0,
+    Sp = 0, 1.0,
        0, 0;
-  Sm = 0, 0,
+    Sm = 0, 0,
        1.0, 0;
 
-  //tensor indices
-  firstIndex i;    secondIndex j; 
-  thirdIndex k;    fourthIndex l; 
+    //tensor indices
+    firstIndex i;    secondIndex j; 
+    thirdIndex k;    fourthIndex l; 
 
-  //create a tensor product: two-site Hamiltonian
-  TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l) ;
-  //write as 2D matrix in combined basis
-  Array<double,2> H12 = reduceM2M2(TSR,2,2);
-  //cout<<"H12 "<<H12<<endl;
+    //create a tensor product: two-site Hamiltonian
+    TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l) ;
+    //write as 2D matrix in combined basis
+    Array<double,2> H12 = reduceM2M2(TSR,2,2);
+    //cout<<"H12 "<<H12<<endl;
 
-  TSR = Sz(i,k)*I2(j,l);
-  Array<double,2> SzAB = reduceM2M2(TSR,2,2);
+    TSR = Sz(i,k)*I2(j,l);
+    Array<double,2> SzAB = reduceM2M2(TSR,2,2);
 
-  TSR = Sm(i,k)*I2(j,l);
-  Array<double,2> SmAB = reduceM2M2(TSR,2,2);
+    TSR = Sm(i,k)*I2(j,l);
+    Array<double,2> SmAB = reduceM2M2(TSR,2,2);
 
-  TSR = Sp(i,k)*I2(j,l);
-  Array<double,2> SpAB = reduceM2M2(TSR,2,2);
+    TSR = Sp(i,k)*I2(j,l);
+    Array<double,2> SpAB = reduceM2M2(TSR,2,2);
 
-  blkS.HAB.resize(4,4);
-  blkS.HAB = H12;
-  st = 2;     //start with a 2^2=4 state system
-  sites = 2;  //in SYSTEM block
+    blkS.HAB.resize(4,4);
+    blkS.HAB = H12;
+    st = 2;     //start with a 2^2=4 state system
+    sites = 2;  //in SYSTEM block
 
 
-  /******infinite system algorithm loop   ***********************/
-  /******build system until number of desired states m **********/
+    /******infinite system algorithm loop   ***********************/
+    /******build system until number of desired states m **********/
 
-  truncflag = 0;
+    truncflag = 0;
 
-  while (sites <= (NumS)/2 ) {
-
-    Habcd = blkS.HAB(i,k)*I2st(j,l) + I2st(i,k)*blkS.HAB(j,l) +
-      SzAB(i,k)*SzAB(j,l)+ 0.5*SpAB(i,k)*SmAB(j,l) + 0.5*SmAB(i,k)*SpAB(j,l);
-  
-    Eval=calculateGroundState(Habcd,Psi,(4*st*st));
-    
-//     cout<<"sites: "<<2.0*sites;
-//     if (truncflag == 0) cout<<" e ";
-//     else cout<<" t ";
-    cout<<"# "<<2.0*sites<<" "<<1.0/(2.0*sites);
-    cout<<" "<<Eval/(2.0*sites)<<endl;
-    
-    rhoTSR = 0;
-    for (i1=0; i1< 2*st; i1++)
-      for (i1p=0; i1p< 2*st; i1p++)
-        for (i2=0; i2< 2*st; i2++)
- 	  rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
+    while (sites <= (NumS)/2 ) 
+    {
+	Habcd = blkS.HAB(i,k)*I2st(j,l)+ 
+	    I2st(i,k)*blkS.HAB(j,l)+
+	    SzAB(i,k)*SzAB(j,l)+0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
+      
+	Eval=calculateGroundState(Habcd,Psi,(4*st*st));
+	
+//      cout<<"sites: "<<2.0*sites;
+//      if (truncflag == 0) cout<<" e ";
+//      else cout<<" t ";
+	cout<<"# "<<2.0*sites<<" "<<1.0/(2.0*sites);
+	cout<<" "<<Eval/(2.0*sites)<<endl;
+	
+	rhoTSR = 0;
+	for (i1=0; i1< 2*st; i1++)
+	  for (i1p=0; i1p< 2*st; i1p++)
+	    for (i2=0; i2< 2*st; i2++)
+	      rhoTSR(i1,i1p) += Psi(i1,i2)*Psi(i1p,i2); 
 
     if (2*st <= m){     // NO TRUNCATION
       OO.resize(2*st,2*st);

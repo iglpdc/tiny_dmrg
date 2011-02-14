@@ -1,14 +1,15 @@
-//Oct. 26, Roger Melko ORNL
-//
-//Exact diagonalization program for a real, symmetric matrix
-//Householder reduction to tridiagonal form, then ED
-//
-//Takes input as Blitz++ Arrays<>
-//
-//set the below value to "1" if you want the eigenvectors, and to "0" if not
+/** 
+ * @file HHtridi8.h
+ *
+ * @brief Interface for the routines related to the calculation of the  
+ * reduced density matrix
+ *
+ * Oct. 26, Roger Melko ORNL
+ */
 #ifndef HHTRIDI_H
 #define HHTRIDI_H  
 
+blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi);
 void DMlargeEigen(blitz::Array<double,2>& Hm, blitz::Array<double,2>& Od, 
 	const int nn, const int mm);
 #endif //HHTRIDI_H 

@@ -88,17 +88,17 @@ int main()
   //create a tensor product: two-site Hamiltonian
   TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l) ;
   //write as 2D matrix in combined basis
-  Array<double,2> H12 = reduceM2M2(TSR,2);
+  Array<double,2> H12 = reduceM2M2(TSR,2,2);
   //cout<<"H12 "<<H12<<endl;
 
   TSR = Sz(i,k)*I2(j,l);
-  Array<double,2> SzAB = reduceM2M2(TSR,2);
+  Array<double,2> SzAB = reduceM2M2(TSR,2,2);
 
   TSR = Sm(i,k)*I2(j,l);
-  Array<double,2> SmAB = reduceM2M2(TSR,2);
+  Array<double,2> SmAB = reduceM2M2(TSR,2,2);
 
   TSR = Sp(i,k)*I2(j,l);
-  Array<double,2> SpAB = reduceM2M2(TSR,2);
+  Array<double,2> SpAB = reduceM2M2(TSR,2,2);
 
   blkS.HAB.resize(4,4);
   blkS.HAB = H12;
@@ -186,7 +186,7 @@ int main()
     TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
       0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
     blkS.HAB.resize(2*st,2*st);            //Hamiltonian for next iteration
-    blkS.HAB = reduceM2M2(TSR,st);
+    blkS.HAB = reduceM2M2(TSR,st,2);
    //   cout<<HAB<<endl;
     
     if (truncflag < 3){
@@ -202,15 +202,15 @@ int main()
       }
       SzAB.resize(2*st,2*st);  //Operators for next iteration
       TSR = I2st(i,k)*Sz(j,l);
-      SzAB = reduceM2M2(TSR,st);
+      SzAB = reduceM2M2(TSR,st,2);
       
       SpAB.resize(2*st,2*st);
       TSR = I2st(i,k)*Sp(j,l);
-      SpAB = reduceM2M2(TSR,st);
+      SpAB = reduceM2M2(TSR,st,2);
       
       SmAB.resize(2*st,2*st);
       TSR = I2st(i,k)*Sm(j,l);
-      SmAB = reduceM2M2(TSR,st);        
+      SmAB = reduceM2M2(TSR,st,2);        
       
       Habcd.resize(2*st,2*st,2*st,2*st);   //re-prepare superblock matrix
       Psi.resize(2*st,2*st);             //GS wavefunction
@@ -300,7 +300,7 @@ int main()
       //Add spin to the system block only
       TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
 	0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
-      blkS.HAB = reduceM2M2(TSR,m);
+      blkS.HAB = reduceM2M2(TSR,m,2);
       
       sites++;
 

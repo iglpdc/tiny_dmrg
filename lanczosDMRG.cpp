@@ -10,6 +10,9 @@
 #include "lanczosDMRG_helpers.h"
 #include "lanczosDMRG.h"
 #include "tqli2.h"
+#include "matrixManipulation.h"
+
+BZ_USING_NAMESPACE(blitz)
 
 /**
  * @brief A function to reduce the Hamiltonian to a tri-diagonal form  
@@ -175,80 +178,6 @@ int LanczosED(blitz::Array<double,2>& Ham, blitz::Array<double,1>& Psi, double *
 
   return 0;
 } 
-
-
-//#define SIGN(a,b) ((b)<0 ? -fabs(a) : fabs(a))
-///**
-// * @brief A function to diagonalize a tridiagonal matrix
-// *
-// * April 2005, Roger Melko, modified from Numerical Recipies in C v.2
-// * modified from www.df.unipi.it/~moruzzi/
-// * Diagonalizes a tridiagonal matrix: d[] is input as the diagonal elements,
-// * e[] as the off-diagonal.  If the eigenvalues of the tridiagonal matrix
-// * are wanted, input z as the identity matrix.  If the eigenvalues of the
-// * original matrix reduced by tred2 are desired, input z as the matrix
-// * output by tred2.  The kth column of z returns the normalized eigenvectors,
-// * corresponding to the eigenvalues output in d[k].
-// * Feb 23 2005: modified to use Blitz++ arrays
-// */
-//int tqli2(Array<double,1>& d, Array<double,1>& e, int n, Array<double,2>& z, 
-//	const int Evects)
-//{
-//  int m,l,iter,i,k;
-//  double s,r,p,g,f,dd,c,b;
-//
-//  for (l=0;l<n;l++) {
-//    iter=0;
-//    do { 
-//      for (m=l;m<n-1;m++) { 
-//	dd=fabs(d(m))+fabs(d(m+1));
-//	if (fabs(e(m))+dd == dd) break;
-//      }
-//      if (m!=l) { 
-//	if (iter++ == 30) { 
-//	  cout <<"Too many iterations in tqli() \n";
-//	  return 0;
-//	}
-//	g=(d(l+1)-d(l))/(2.0*e(l));
-//	r=sqrt((g*g)+1.0);
-//	g=d(m)-d(l)+e(l)/(g+SIGN(r,g));
-//	s=c=1.0;
-//	p=0.0;
-//	for (i=m-1;i>=l;i--) { 
-//	  f=s*e(i);
-//	  b=c*e(i);
-//	  if (fabs(f) >= fabs(g)) { 
-//	    c=g/f;r=sqrt((c*c)+1.0);
-//	    e(i+1)=f*r;
-//	    c *= (s=1.0/r);
-//	  }
-//	  else { 
-//	    s=f/g;r=sqrt((s*s)+1.0);
-//	    e(i+1)=g*r;
-//	    s *= (c=1.0/r);
-//	  }
-//	  g=d(i+1)-p;
-//	  r=(d(i)-g)*s+2.0*c*b;
-//	  p=s*r;
-//	  d(i+1)=g+p;
-//	  g=c*r-b;
-//	  /*EVECTS*/
-//	  if (Evects == 1) {
-//	    for (k=0;k<n;k++) { 
-//	      f=z(k,i+1);
-//	      z(k,i+1)=s*z(k,i)+c*f;
-//	      z(k,i)=c*z(k,i)-s*f;
-//	    }
-//	  }//Evects
-//	}
-//	d(l)=d(l)-p;
-//	e(l)=g;
-//	e(m)=0.0;
-//      }
-//    } while (m!=l);
-//  }
-//  return 1;
-//}
 /**
  * @brief A function to calculate the ground state function using the
  * Lanczos algorithm
@@ -267,25 +196,27 @@ double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed, const int 
   //complicated integer square root?
   int L = static_cast<int>(std::sqrt(1.0*nn));          
 
-  int c1=0;
-  int c2;
+  Ham2d=reduceM2M2(Hm,L,L);
 
-  for (int i1=0; i1<L; i1++)
-  {
-    for (int i2=0; i2<L; i2++)
-    {
-      c2=0;
-      for (int i3=0; i3<L; i3++)
-      {
-	for (int i4=0; i4<L; i4++)
-	{
-	  Ham2d(c1,c2) = Hm(i1,i2,i3,i4);  //pack as 2D matrix
-	  c2++;
-	}
-      }
-      c1++;
-    }
-  }
+  //int c1=0;
+  //int c2;
+
+  //for (int i1=0; i1<L; i1++)
+  //{
+  //  for (int i2=0; i2<L; i2++)
+  //  {
+  //    c2=0;
+  //    for (int i3=0; i3<L; i3++)
+  //    {
+  //      for (int i4=0; i4<L; i4++)
+  //      {
+  //        Ham2d(c1,c2) = Hm(i1,i2,i3,i4);  //pack as 2D matrix
+  //        c2++;
+  //      }
+  //    }
+  //    c1++;
+  //  }
+  //}
   
   Array<double,1> Psi(nn);  //return eigenvector
   double En;                //return eigenvalue
@@ -294,7 +225,7 @@ double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed, const int 
   if (lrt == 1) cout<<" Lanczos early term error \n)";
 
   //repack Psi as 2D Matrix - Eigenvector
-  c2 = 0;
+  int c2 = 0;
   for (int i1=0; i1<L; i1++)
   {
       for (int i2=0; i2<L; i2++)

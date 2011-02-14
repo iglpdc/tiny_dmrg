@@ -1,11 +1,10 @@
-//Oct. 26, Roger Melko ORNL
-//
-//Exact diagonalization program for a real, symmetric matrix
-//Householder reduction to tridiagonal form, then ED
-//
-//Takes input as Blitz++ Arrays<>
-//
-//set the below value to "1" if you want the eigenvectors, and to "0" if not
+/**
+ * @file tred3.h
+ *
+ * @brief Interface for the tred3 function using blitz arrays
+ *
+ * Roger Melko Oct. 26 2006
+ */
 #ifndef TRED3_H
 #define TRED3_H
 

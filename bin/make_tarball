@@ -1,4 +1,12 @@
 #!/bin/bash
-svn export `svn info | grep URL: | awk '{print $2}'` ../testdmrg_tarball
-; tar -cvzf ../dmrg_rev$(rev).tar.gz ../testdmrg_tarball; rm -rf
-../testdmrg_tarball;
+rev=$(svnversion -n)
+NOW=$(date +"%H-%M-%s")
+TMPDIR=./testdmrg_tarball.$NOW
+TARBALL=./dmrg_rev$rev.tar.gz
+echo $TMPDIR
+echo $TARBALL
+svn up
+svn export `svn info | grep URL: | awk '{print $2}'` $TMPDIR
+tar -cvzf $TARBALL $TMPDIR
+rm -rf $TMPDIR
+echo 'Revision '$rev' exported to '$TARBALL' file'

@@ -129,6 +129,7 @@ int main()
      * Infinite system algorithm 
      */
     int truncflag = 0;
+    int statesToKeepIFA=2; 
 
     while (sitesInSystem <= (numberOfSites)/2 ) 
     {
@@ -141,34 +142,33 @@ int main()
 	printGroundStateEnergy(sitesInSystem, sitesInSystem, 
 		groundStateEnergy);
 	
-	// calculate the reduced density matrix and truncate 
-	rhoTSR=calculateReducedDensityMatrix(Psi);
+	statesToKeepIFA= (2*statesToKeepIFA<=m)? 2*statesToKeepIFA : m;
 
         // decide whether you have to truncate or not 	
 	if (2*st <= m){     // NO TRUNCATION
-	  
-	    OO.resize(2*st,rhoTSR.rows());
-	    OT.resize(rhoTSR.rows(),2*st);
-	    OO=truncateReducedDM(rhoTSR, 2*st);   
-	    
-	    HAp.resize(2*st,2*st);
-	    SzB.resize(2*st,2*st);
-	    SpB.resize(2*st,2*st);
-	    SmB.resize(2*st,2*st);
+
 	    st *= 2;
 	}
 	else {            // TRUNCATION
 	    if (truncflag == 0 || truncflag == 3){
-		OO.resize(m,rhoTSR.rows());
-		OT.resize(rhoTSR.rows(),m);
 		truncflag ++; // 1 or 4
 	    }
-	    OO=truncateReducedDM(rhoTSR, m);   
 	}
+		
+	// calculate the reduced density matrix and truncate 
+	rhoTSR=calculateReducedDensityMatrix(Psi);
+
+	OO.resize(statesToKeepIFA,rhoTSR.rows());
+	OT.resize(rhoTSR.rows(),statesToKeepIFA);
+	OO=truncateReducedDM(rhoTSR, statesToKeepIFA);   
 	OT=OO.transpose(secondDim, firstDim);
 	// end decision
 	
 	//transform the operators to new basis
+	HAp.resize(statesToKeepIFA, statesToKeepIFA);
+	SzB.resize(statesToKeepIFA, statesToKeepIFA);
+	SpB.resize(statesToKeepIFA, statesToKeepIFA);
+	SmB.resize(statesToKeepIFA, statesToKeepIFA);
 	HAp=transformOperator(blkS.HAB, OT, OO);
 	SzB=transformOperator(SzAB, OT, OO);
 	SpB=transformOperator(SpAB, OT, OO);
@@ -179,15 +179,11 @@ int main()
 	  if (truncflag == 1) {
 	    truncflag = 2;	
 	    st = m;
-	    HAp.resize(m,m);
-	    SzB.resize(m,m);
-	    SpB.resize(m,m);
-	    SmB.resize(m,m);
 	  } // truncflag = 0
-	  TSR.resize(st,2,st,2);
 	}
 
 	//Hamiltonian for next iteration
+	TSR.resize(statesToKeepIFA,2,statesToKeepIFA,2);
 	TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
 	  0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
 

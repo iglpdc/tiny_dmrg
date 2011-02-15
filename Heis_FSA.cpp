@@ -36,12 +36,12 @@ int main()
     int numberOfHalfSweeps;
     int numberOfSites;    
     int m;
-    cout<<"# states to keep: ";
-    cin>>m;
-    cout<<"System size : ";
-    cin>>numberOfSites;
-    cout<<"FSA sweeps : ";
-    cin>>numberOfHalfSweeps;
+    std::cout<<"# states to keep: ";
+    std::cin>>m;
+    std::cout<<"System size : ";
+    std::cin>>numberOfSites;
+    std::cout<<"FSA sweeps : ";
+    std::cin>>numberOfHalfSweeps;
     // done reading input
 
     /** \var BLOCK blkS \brief create the system block */
@@ -122,7 +122,6 @@ int main()
 	    OO.resize(2*st,2*st);
 	    OT.resize(2*st,2*st);
 	    DMlargeEigen(rhoTSR, OO, 2*st, 2*st);   
-	    OT=OO.transpose(secondDim, firstDim);
 	    
 	    HAp.resize(2*st,2*st);
 	    SzB.resize(2*st,2*st);
@@ -137,8 +136,9 @@ int main()
 		truncflag ++; // 1 or 4
 	    }
 	    DMlargeEigen(rhoTSR, OO, 2*st, m);   
-	    OT=OO.transpose(secondDim, firstDim);
 	}
+	OT=OO.transpose(secondDim, firstDim);
+	// end decision
 	
 	if (truncflag < 2){
 	  if (truncflag == 1) {
@@ -166,15 +166,19 @@ int main()
 	blkS.HAB = reduceM2M2(TSR,st,2);
 
 	if (truncflag < 3){
+	    int statesToKeep;
+
 	    if  (truncflag == 2) {
 		truncflag = 3;
-		I2st.resize(2*m,2*m);    //redifine identity matrix
-		I2st = createIdentityMatrix(2*m);
+		statesToKeep=2*m;
 	    }
 	    else{  // truncflag<2
-		I2st.resize(4*st,4*st);    //redifine I (still growing)
-		I2st=createIdentityMatrix(4*st);
+		statesToKeep=4*st;
 	    }
+
+	    //redefine identity matrix
+	    I2st.resize(statesToKeep, statesToKeep);    
+	    I2st = createIdentityMatrix(statesToKeep);
 
 	    //Operators for next iteration
 	    SzAB.resize(2*st,2*st);  

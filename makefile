@@ -5,9 +5,9 @@ exec := a.out
 rev:= $(shell svnversion -n)
 
 ifdef debug 
-CXXFLAGS +=-O$(OPT) -pg -Wall
+CXXFLAGS +=-O$(OPT) -pg -Wall -I.
 else
-CXXFLAGS +=-O$(OPT)
+CXXFLAGS +=-O$(OPT) -I.
 endif
 
 ifdef threads 

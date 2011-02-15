@@ -22,12 +22,38 @@
 
 BZ_USING_NAMESPACE(blitz)
 
+/**
+ * @brief A function to calculate the minimum size of the enviroment
+ *
+ * @param m the number of states you are keeping
+ * @param numberOfSites the number of sites of the system
+ *
+ * In the finite size algorithm you do not need to solve with DMRG because
+ * you can do it exactly
+ */
 double calculateMinEnviromentSize(int m, int numberOfSites)
 {
     int result;
     for (result=3; result<numberOfSites; result++)
 	if (powf(2.0,result) >= 2.0*m) break;
     return result;
+}
+
+/**
+ * @brief A function to print the energy in a fancy way
+ *
+ * @param groundStateEnergy 
+ * @param 
+ *
+ * Just prints the thing: sites in the left block, sites in the right
+ * block, and energy per site
+ */
+void printGroundStateEnergy(int sitesInLeft, int sitesInRight, 
+	double groundStateEnergy)
+{
+    std::cout<<setprecision(16);
+    std::cout<<sitesInLeft<<" "<<sitesInRight\
+	<<" "<<groundStateEnergy/(sitesInLeft+sitesInRight)<<std::endl;
 }
 
 int main()
@@ -109,10 +135,10 @@ int main()
 	    SzAB(i,k)*SzAB(j,l)+0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
       
 	double groundStateEnergy=calculateGroundState(Habcd, Psi);
-	
-	std::cout<<"# "<<2.0*sitesInSystem<<" "<<1.0/(2.0*sitesInSystem);
-	std::cout<<" "<<groundStateEnergy/(2.0*sitesInSystem)<<std::endl;
 
+	printGroundStateEnergy(sitesInSystem, sitesInSystem, 
+		groundStateEnergy);
+	
 	// calculate the reduced density matrix and truncate 
 	rhoTSR=calculateReducedDensityMatrix(Psi);
 
@@ -234,11 +260,12 @@ int main()
 		double groundStateEnergy=calculateGroundState(Habcd, Psi);
 
 		if (halfSweep%2 == 0) 
-		    std::cout<<sitesInSystem<<" "<<sitesInEnviroment;
+		    printGroundStateEnergy(sitesInSystem, sitesInEnviroment, 
+			    groundStateEnergy);
 		else 
-		    std::cout<<sitesInEnviroment<<" "<<sitesInSystem;
-		std::cout<<" "<<groundStateEnergy/numberOfSites<<std::endl;
-	     
+		    printGroundStateEnergy(sitesInEnviroment, sitesInSystem, 
+			    groundStateEnergy);
+	    
 		// calculate the reduced density matrix and truncate 
 		rhoTSR=calculateReducedDensityMatrix(Psi);
 	 

@@ -9,10 +9,12 @@
  * 
  * @brief Elementry DMRG simulation for the Heisenberg chain; 
  *  \f$H= \sum_{ij} (S^x_i S^x_j + S^y_i S^y_j +  S^z_i S^z_j ) \f$
- * 
- *  - Uses a "symmetric" infinite system algorithm to build chain 
- *  - Exact diagonalization performed with Lanczos
- *  - finite system sweep - symmetric build of L and R blocks
+ *
+ * <ul> 
+ *  <li> Uses a "symmetric" infinite system algorithm to build chain 
+ *  <li> Exact diagonalization performed with Lanczos
+ *  <li> finite system sweep - symmetric build of L and R blocks
+ *  </ul>
  */
 #include "blitz/array.h"
 #include "block.h"
@@ -88,7 +90,7 @@ int main()
     Array<double,2> SmB;   //Sm(left) operator
     Array<double,2> SpB;   //Sp(left) operator
 
-    //create identity matrices
+    // create identity matrices
     Array<double,2> I2=createIdentityMatrix(2);
     Array<double,2> I2st=createIdentityMatrix(4);
 
@@ -101,7 +103,7 @@ int main()
     Sm = 0, 0,
        1.0, 0;
 
-    //tensor indices
+    // tensor indices
     firstIndex i;    secondIndex j; 
     thirdIndex k;    fourthIndex l; 
 
@@ -145,9 +147,9 @@ int main()
         // decide whether you have to truncate or not 	
 	if (2*st <= m){     // NO TRUNCATION
 	  
-	    OO.resize(2*st,2*st);
-	    OT.resize(2*st,2*st);
-	    DMlargeEigen(rhoTSR, OO, 2*st, 2*st);   
+	    OO.resize(2*st,rhoTSR.rows());
+	    OT.resize(rhoTSR.rows(),2*st);
+	    OO=truncateReducedDM(rhoTSR, 2*st);   
 	    
 	    HAp.resize(2*st,2*st);
 	    SzB.resize(2*st,2*st);
@@ -157,15 +159,22 @@ int main()
 	}
 	else {            // TRUNCATION
 	    if (truncflag == 0 || truncflag == 3){
-		OO.resize(m,2*st);
-		OT.resize(2*st,m);
+		OO.resize(m,rhoTSR.rows());
+		OT.resize(rhoTSR.rows(),m);
 		truncflag ++; // 1 or 4
 	    }
-	    DMlargeEigen(rhoTSR, OO, 2*st, m);   
+	    OO=truncateReducedDM(rhoTSR, m);   
 	}
 	OT=OO.transpose(secondDim, firstDim);
 	// end decision
 	
+	//transform the operators to new basis
+	HAp=transformOperator(blkS.HAB, OT, OO);
+	SzB=transformOperator(SzAB, OT, OO);
+	SpB=transformOperator(SpAB, OT, OO);
+	SmB=transformOperator(SmAB, OT, OO);
+	
+	// prepare Hamiltonian for next iter
 	if (truncflag < 2){
 	  if (truncflag == 1) {
 	    truncflag = 2;	
@@ -177,12 +186,6 @@ int main()
 	  } // truncflag = 0
 	  TSR.resize(st,2,st,2);
 	}
-
-	//transform the operators to new basis
-	HAp=transformOperator(blkS.HAB, OT, OO);
-	SzB=transformOperator(SzAB, OT, OO);
-	SpB=transformOperator(SpAB, OT, OO);
-	SmB=transformOperator(SmAB, OT, OO);
 
 	//Hamiltonian for next iteration
 	TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
@@ -269,7 +272,7 @@ int main()
 		// calculate the reduced density matrix and truncate 
 		rhoTSR=calculateReducedDensityMatrix(Psi);
 	 
-		DMlargeEigen(rhoTSR, OO, 2*m, m);   
+		Array<double,2> OO=truncateReducedDM(rhoTSR, m);   
 		OT=OO.transpose(secondDim, firstDim);
 	  
 		//transform the operators to new basis

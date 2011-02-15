@@ -15,6 +15,6 @@ blitz::Array<double,2> transformOperator(const blitz::Array<double,2>& op,
 
 blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi);
 
-void DMlargeEigen(blitz::Array<double,2>& Hm, blitz::Array<double,2>& Od, 
-	const int nn, const int mm);
+blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>& Hm, 
+	const int mm);
 #endif //HHTRIDI_H 

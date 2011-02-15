@@ -68,31 +68,34 @@ blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi)
  * @brief A function calculate the density matrix eigenvalues
  *
  * @param density_matrix the reduced density matrix
- * @param truncated_density_matrix the truncated reduced density matrix
- * @param nn total number of density matrix eigenvalues
  * @param mm number of density matrix eigenvalues to keep
  *
- * Takes the reduced density matrix (DM) which is a real and symmetric matrix. 
- * Performs a Householder reduction to tridiagonal form, then diagonalizes
- * exactly this matrix. Takes input as Blitz++ arrays 
+ * @return truncated_density_matrix the truncated reduced density matrix
+ *
+ * Takes the reduced density matrix (DM) which is a real and symmetric 
+ * matrix. Performs a Householder reduction to tridiagonal form, then 
+ * diagonalizes exactly this matrix. Takes input as Blitz++ arrays 
  *
  * checks if the DM is square (but not if it's symmetric)
  * checks that mm=<nn
  * assures that the sum of the DM eigenvalues is 1.0
  *
  */
-void DMlargeEigen(blitz::Array<double,2>& density_matrix, 
-	blitz::Array<double,2>& truncated_density_matrix, 
-	const int nn, const int mm)
+blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>& 
+	density_matrix, const int mm)
 {
     if (density_matrix.cols()!=density_matrix.rows())
 	throw dmrg::Exception("reduced DM is not square");
     
+    const int nn=density_matrix.rows();
+
     if (mm>nn)
 	throw dmrg::Exception("Cannot keep more states than size of DM");
 
     blitz::Array<double,1> e(nn);
     blitz::Array<double,1> density_matrix_eigenvalues(nn); 
+
+    blitz::Array<double,2> truncated_density_matrix(mm, nn); 
 
     // Householder reduction: reduces symmetric matrix to a tridiagonal
     // form
@@ -148,6 +151,7 @@ void DMlargeEigen(blitz::Array<double,2>& density_matrix,
 	{
 	    truncated_density_matrix(kk,i) = density_matrix(i,inx(nn-1-kk));   
 	}
-    } 
+    }
+    return truncated_density_matrix; 
 }
 // end HHtridi8.cpp

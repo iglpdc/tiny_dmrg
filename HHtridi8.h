@@ -9,7 +9,12 @@
 #ifndef HHTRIDI_H
 #define HHTRIDI_H  
 
+blitz::Array<double,2> transformOperator(const blitz::Array<double,2>& op, 
+	const blitz::Array<double,2>& transposed_transformation_matrix,
+	const blitz::Array<double,2>& transformation_matrix);
+
 blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi);
+
 void DMlargeEigen(blitz::Array<double,2>& Hm, blitz::Array<double,2>& Od, 
 	const int nn, const int mm);
 #endif //HHTRIDI_H 

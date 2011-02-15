@@ -8,6 +8,7 @@
 #include <cmath>
 #include <iomanip>
 #include "blitz/array.h"
+#include "exceptions.h"
 #include "lanczosDMRG_helpers.h"
 #include "tqli2.h"
 #include "matrixManipulation.h"
@@ -187,48 +188,31 @@ int LanczosED(blitz::Array<double,2>& Ham, blitz::Array<double,1>& Psi, double *
  * @param Ed is a matrix with the result of the calculation
  * @param nn is ??
  *
- * Returns the ground state eigenvalue and eigenvector using the Lanczos function
- *
+ * Returns the ground state eigenvalue and eigenvector using the 
+ * Lanczos function
  */
-double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed, const int nn)
+double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed)
 {
-  Array<double,2> Ham2d(nn,nn);
+    const int nn=sqrt(Hm.numElements());
 
-  //complicated integer square root?
-  int L = static_cast<int>(std::sqrt(1.0*nn));          
+    Array<double,2> Ham2d(nn,nn);
 
-  Ham2d=reduceM2M2(Hm,L,L);
+    //complicated integer square root?
+    int L = static_cast<int>(std::sqrt(1.0*nn));          
 
-  //int c1=0;
-  //int c2;
+    Ham2d=reduceM2M2(Hm,L,L);
 
-  //for (int i1=0; i1<L; i1++)
-  //{
-  //  for (int i2=0; i2<L; i2++)
-  //  {
-  //    c2=0;
-  //    for (int i3=0; i3<L; i3++)
-  //    {
-  //      for (int i4=0; i4<L; i4++)
-  //      {
-  //        Ham2d(c1,c2) = Hm(i1,i2,i3,i4);  //pack as 2D matrix
-  //        c2++;
-  //      }
-  //    }
-  //    c1++;
-  //  }
-  //}
-  
-  Array<double,1> Psi(nn);  //return eigenvector
-  double En;                //return eigenvalue
+    Array<double,1> Psi(nn);  //return eigenvector
+    double En;                //return eigenvalue
 
-  int lrt = LanczosED(Ham2d, Psi, &En, nn); 
-  if (lrt == 1) cout<<" Lanczos early term error \n)";
+    int lrt = LanczosED(Ham2d, Psi, &En, nn); 
+    if (lrt == 1) 
+      throw dmrg::Exception("Lanczos early term error");
 
-  //repack Psi as 2D Matrix - Eigenvector
-  int c2 = 0;
-  for (int i1=0; i1<L; i1++)
-  {
+    //repack Psi as 2D Matrix - Eigenvector
+    int c2 = 0;
+    for (int i1=0; i1<L; i1++)
+    {
       for (int i2=0; i2<L; i2++)
       {
 	  double melem = Psi(c2);
@@ -236,7 +220,7 @@ double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed, const int 
 	  Ed(i2,i1) = melem;
 	  c2++;
       }
-  }
-  return En;  //ground state eigenvalue
+    }
+    return En;  //ground state eigenvalue
 }
 //end lanczosDMRG.cpp

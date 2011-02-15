@@ -22,29 +22,32 @@
 
 BZ_USING_NAMESPACE(blitz)
 
+double calculateMinEnviromentSize(int m, int numberOfSites)
+{
+    int result;
+    for (result=3; result<numberOfSites; result++)
+	if (powf(2.0,result) >= 2.0*m) break;
+    return result;
+}
+
 int main()
 {
-    int iter, NumI;
-    int i1, i1p, i2, i2p, i3, i4; 
-    int b1; 
-    int m, st;     //# states
-    int truncflag;
-    int sites, NumS;     //# sites (SYSTEM)
-    int Esites;          //# sites (ENVIRONMENT)
-    int FSAend;
+    // Read some input 
+    int numberOfHalfSweeps;
+    int numberOfSites;    
+    int m;
+    cout<<"# states to keep: ";
+    cin>>m;
+    cout<<"System size : ";
+    cin>>numberOfSites;
+    cout<<"FSA sweeps : ";
+    cin>>numberOfHalfSweeps;
+    // done reading input
 
     /** \var BLOCK blkS \brief create the system block */
     BLOCK blkS;  //the system block
     ///create the environment block
     BLOCK blkE;  //the environment block
-
-    cout<<"# states to keep: ";
-    cin>>m;
-    cout<<"System size : ";
-    cin>>NumS;
-    cout<<"FSA sweeps : ";
-    cin>>NumI;
-
     //Matrices
     Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
 
@@ -53,7 +56,6 @@ int main()
     Array<double,2> rhoTSR(4,4); // reduced density matrix
     Array<double,2> OO(m,4);   //the TRUNCATION matrix
     Array<double,2> OT(4,m);   // trasposed truncation matrix
-    Array<double,2> Hl(4,m);   // the left half of new system H
 
     Array<double,2> HAp;  //A' block hamiltonian
     Array<double,2> SzB;   //Sz(left) operator  
@@ -61,13 +63,8 @@ int main()
     Array<double,2> SpB;   //Sp(left) operator
 
     //create identity matrices
-    Array<double,2> I2(2,2), I4(4,4), I2m(2*m,2*m);   
-    I2=0.0; I4=0.0; I2m=0.0;
-    for (b1=0; b1<2; b1++) I2(b1,b1)=1.0;
-    for (b1=0; b1<4; b1++) I4(b1,b1)=1.0;
-    for (b1=0; b1<(2*m); b1++) I2m(b1,b1)=1.0;
-    Array<double,2> I2st(4,4);
-    I2st = I4;
+    Array<double,2> I2=createIdentityMatrix(2);
+    Array<double,2> I2st=createIdentityMatrix(4);
 
     // Create pauli matrices
     Array<double,2> Sz(2,2), Sp(2,2), Sm(2,2);
@@ -82,11 +79,13 @@ int main()
     firstIndex i;    secondIndex j; 
     thirdIndex k;    fourthIndex l; 
 
-    //create a tensor product: two-site Hamiltonian
-    TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l) ;
-    //write as 2D matrix in combined basis
-    Array<double,2> H12 = reduceM2M2(TSR,2,2);
-    //cout<<"H12 "<<H12<<endl;
+    // build the Hamiltonian for two-sites only
+    int st = 2;     //start with a 2^2=4 state system
+    int sitesInSystem=2;     //# sites (SYSTEM)
+
+    TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l);
+    blkS.HAB.resize(4,4);
+    blkS.HAB = reduceM2M2(TSR,2,2);
 
     TSR = Sz(i,k)*I2(j,l);
     Array<double,2> SzAB = reduceM2M2(TSR,2,2);
@@ -96,43 +95,35 @@ int main()
 
     TSR = Sp(i,k)*I2(j,l);
     Array<double,2> SpAB = reduceM2M2(TSR,2,2);
+    // done building the Hamiltonian
 
-    blkS.HAB.resize(4,4);
-    blkS.HAB = H12;
-    st = 2;     //start with a 2^2=4 state system
-    sites = 2;  //in SYSTEM block
+    /**
+     * Infinite system algorithm 
+     */
+    int truncflag = 0;
 
-
-    /******infinite system algorithm loop   ***********************/
-    /******build system until number of desired states m **********/
-
-    truncflag = 0;
-
-    while (sites <= (NumS)/2 ) 
+    while (sitesInSystem <= (numberOfSites)/2 ) 
     {
 	Habcd = blkS.HAB(i,k)*I2st(j,l)+ 
 	    I2st(i,k)*blkS.HAB(j,l)+
 	    SzAB(i,k)*SzAB(j,l)+0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
       
-	double Eval=calculateGroundState(Habcd,Psi,(4*st*st));
+	double groundStateEnergy=calculateGroundState(Habcd, Psi);
 	
-//      cout<<"sites: "<<2.0*sites;
-//      if (truncflag == 0) cout<<" e ";
-//      else cout<<" t ";
-	cout<<"# "<<2.0*sites<<" "<<1.0/(2.0*sites);
-	cout<<" "<<Eval/(2.0*sites)<<endl;
+	std::cout<<"# "<<2.0*sitesInSystem<<" "<<1.0/(2.0*sitesInSystem);
+	std::cout<<" "<<groundStateEnergy/(2.0*sitesInSystem)<<std::endl;
 
+	// calculate the reduced density matrix and truncate 
 	rhoTSR=calculateReducedDensityMatrix(Psi);
-	
+
+        // decide whether you have to truncate or not 	
 	if (2*st <= m){     // NO TRUNCATION
 	  
 	    OO.resize(2*st,2*st);
 	    OT.resize(2*st,2*st);
 	    DMlargeEigen(rhoTSR, OO, 2*st, 2*st);   
-	    for (i1=0; i1<2*st; i1++)
-	    for (i2=0; i2< 2*st; i2++)
-	      OT(i1,i2) = OO(i2,i1); 
-	    Hl.resize(2*st,2*st);
+	    OT=OO.transpose(secondDim, firstDim);
+	    
 	    HAp.resize(2*st,2*st);
 	    SzB.resize(2*st,2*st);
 	    SpB.resize(2*st,2*st);
@@ -143,13 +134,10 @@ int main()
 	    if (truncflag == 0 || truncflag == 3){
 		OO.resize(m,2*st);
 		OT.resize(2*st,m);
-		Hl.resize(2*st,m);
 		truncflag ++; // 1 or 4
 	    }
 	    DMlargeEigen(rhoTSR, OO, 2*st, m);   
-	    for (i1=0; i1<2*st; i1++)
-		for (i2=0; i2< m; i2++)
-		    OT(i1,i2) = OO(i2,i1);
+	    OT=OO.transpose(secondDim, firstDim);
 	}
 	
 	if (truncflag < 2){
@@ -160,132 +148,120 @@ int main()
 	    SzB.resize(m,m);
 	    SpB.resize(m,m);
 	    SmB.resize(m,m);
-	  }
+	  } // truncflag = 0
 	  TSR.resize(st,2,st,2);
 	}
 
-    //transform Operator Matrices to new basis
-    Hl = sum(blkS.HAB(i,k)*OT(k,j),k);   //Ha'
-    HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
+	//transform the operators to new basis
+	HAp=transformOperator(blkS.HAB, OT, OO);
+	SzB=transformOperator(SzAB, OT, OO);
+	SpB=transformOperator(SpAB, OT, OO);
+	SmB=transformOperator(SmAB, OT, OO);
 
-    Hl = sum(SzAB(i,k)*OT(k,j),k);  
-    SzB = sum(OO(i,k)*Hl(k,j),k);    
+	//Hamiltonian for next iteration
+	TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
+	  0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
 
-    Hl = sum(SpAB(i,k)*OT(k,j),k);  
-    SpB = sum(OO(i,k)*Hl(k,j),k);
+	blkS.HAB.resize(2*st,2*st);            
+	blkS.HAB = reduceM2M2(TSR,st,2);
 
-    Hl = sum(SmAB(i,k)*OT(k,j),k);  
-    SmB = sum(OO(i,k)*Hl(k,j),k);
+	if (truncflag < 3){
+	    if  (truncflag == 2) {
+		truncflag = 3;
+		I2st.resize(2*m,2*m);    //redifine identity matrix
+		I2st = createIdentityMatrix(2*m);
+	    }
+	    else{  // truncflag<2
+		I2st.resize(4*st,4*st);    //redifine I (still growing)
+		I2st=createIdentityMatrix(4*st);
+	    }
 
-    TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
-      0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
-    blkS.HAB.resize(2*st,2*st);            //Hamiltonian for next iteration
-    blkS.HAB = reduceM2M2(TSR,st,2);
-    //   cout<<HAB<<endl;
-    
-    if (truncflag < 3){
-      if  (truncflag == 2) {
-	truncflag = 3;
-	I2st.resize(2*m,2*m);    //redifine identity matrix
-	I2st = I2m;
-      }
-      else{
-	I2st.resize(4*st,4*st);    //redifine I (still growing)
-	I2st = 0.0;
-	for (b1=0; b1<(4*st); b1++) I2st(b1,b1)=1.0;
-      }
-      SzAB.resize(2*st,2*st);  //Operators for next iteration
-      TSR = I2st(i,k)*Sz(j,l);
-      SzAB = reduceM2M2(TSR,st,2);
-      
-      SpAB.resize(2*st,2*st);
-      TSR = I2st(i,k)*Sp(j,l);
-      SpAB = reduceM2M2(TSR,st,2);
-      
-      SmAB.resize(2*st,2*st);
-      TSR = I2st(i,k)*Sm(j,l);
-      SmAB = reduceM2M2(TSR,st,2);        
-      
-      Habcd.resize(2*st,2*st,2*st,2*st);   //re-prepare superblock matrix
-      Psi.resize(2*st,2*st);             //GS wavefunction
-      rhoTSR.resize(2*st,2*st);
-    }
+	    //Operators for next iteration
+	    SzAB.resize(2*st,2*st);  
+	    TSR = I2st(i,k)*Sz(j,l);
+	    SzAB = reduceM2M2(TSR,st,2);
 
-    sites++;
+	    SpAB.resize(2*st,2*st);
+	    TSR = I2st(i,k)*Sp(j,l);
+	    SpAB = reduceM2M2(TSR,st,2);
 
-    blkS.size = sites;  //this is the size of the system block
-    blkS.ISAwrite(sites);
+	    SmAB.resize(2*st,2*st);
+	    TSR = I2st(i,k)*Sm(j,l);
+	    SmAB = reduceM2M2(TSR,st,2);        
+
+	    Habcd.resize(2*st,2*st,2*st,2*st);   //re-prepare superblock matrix
+	    Psi.resize(2*st,2*st);             //GS wavefunction
+	    rhoTSR.resize(2*st,2*st);
+	} // if truncflag<3 
+
+	sitesInSystem++;
+
+	blkS.size = sitesInSystem;  //this is the size of the system block
+	blkS.ISAwrite(sitesInSystem);
     
     }//end INFINITE SYSTEM ALGORITHM iteration
-
   
-    std::cout<<"# End ISA; sites = "<<sites<<std::endl;
+    std::cout<<"End of the infinite system algorithm\n";
 
-
-    /******FINITE system algorithm loop   ***********************/  
-
-    //find maximum extent of FSA sweep
-    for (FSAend = 3; FSAend < NumS; FSAend++)
-	if (powf(2.0,FSAend) >= 2.0*m) break;
-  
-    //sites= FSAend;
-    sites = NumS/2;
-    blkS.FSAread(sites,1);
-
-  
-    for (iter=0; iter<NumI; iter++){
-    
-	while (sites <= NumS-FSAend){
-
-	    //std::cout<<sites<<" before "<<blkE.HAB;
-	    Esites = NumS - sites;
-	    blkE.FSAread(Esites,iter);
-
-	    Habcd = blkE.HAB(i,k)*I2st(j,l)+I2st(i,k)*blkS.HAB(j,l) +
-	    SzAB(i,k)*SzAB(j,l)+0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
-
-	    double Eval=calculateGroundState(Habcd,Psi,(4*m*m));
-
-	    if (iter%2 == 0) cout<<sites<<" "<<Esites;
-	    else cout<<Esites<<" "<<sites;
-	    cout<<" "<<Eval/(Esites+sites)<<endl;
-	  
-	    rhoTSR=calculateReducedDensityMatrix(Psi);
+    /**
+     * Finite size algorithm 
+     */
+    {
+	// find minimum size of the enviroment
+	int minEnviromentSize=calculateMinEnviromentSize(m,numberOfSites);
      
-	    DMlargeEigen(rhoTSR, OO, 2*m, m);   
-	    for (i1=0; i1<2*m; i1++)
-	      for (i2=0; i2< m; i2++)
-		OT(i1,i2) = OO(i2,i1);
+	// start in the middle of the chain 
+	int sitesInSystem = numberOfSites/2;
+	blkS.FSAread(sitesInSystem,1);
       
-	    //transform Operator Matrices to new basis
-	    Hl = sum(blkS.HAB(i,k)*OT(k,j),k);   //Ha'
-	    HAp = sum(OO(i,k)*Hl(k,j),k);   //(inner product)
+	for (int halfSweep=0; halfSweep<numberOfHalfSweeps; halfSweep++)
+	{
+	    while (sitesInSystem <= numberOfSites-minEnviromentSize)
+	    {
+		int sitesInEnviroment = numberOfSites - sitesInSystem;
+		blkE.FSAread(sitesInEnviroment,halfSweep);
 
-	    Hl = sum(SzAB(i,k)*OT(k,j),k);  
-	    SzB = sum(OO(i,k)*Hl(k,j),k);    
+		// build the hamiltonian as a for index tensor
+		Habcd = blkE.HAB(i,k)*I2st(j,l)+I2st(i,k)*blkS.HAB(j,l)+
+		SzAB(i,k)*SzAB(j,l)+
+		0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
 
-	    Hl = sum(SpAB(i,k)*OT(k,j),k);  
-	    SpB = sum(OO(i,k)*Hl(k,j),k);
+		// calculate the ground state energy 
+		double groundStateEnergy=calculateGroundState(Habcd, Psi);
 
-	    Hl = sum(SmAB(i,k)*OT(k,j),k);  
-	    SmB = sum(OO(i,k)*Hl(k,j),k);
+		if (halfSweep%2 == 0) 
+		    std::cout<<sitesInSystem<<" "<<sitesInEnviroment;
+		else 
+		    std::cout<<sitesInEnviroment<<" "<<sitesInSystem;
+		std::cout<<" "<<groundStateEnergy/numberOfSites<<std::endl;
+	     
+		// calculate the reduced density matrix and truncate 
+		rhoTSR=calculateReducedDensityMatrix(Psi);
+	 
+		DMlargeEigen(rhoTSR, OO, 2*m, m);   
+		OT=OO.transpose(secondDim, firstDim);
+	  
+		//transform the operators to new basis
+		HAp=transformOperator(blkS.HAB, OT, OO);
+		SzB=transformOperator(SzAB, OT, OO);
+		SpB=transformOperator(SpAB, OT, OO);
+		SmB=transformOperator(SmAB, OT, OO);
 
-	    //Add spin to the system block only
-	    TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
-	    0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
-	    blkS.HAB = reduceM2M2(TSR,m,2);
-  
-	    sites++;
+		//Add spin to the system block only
+		TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
+		0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
+		blkS.HAB = reduceM2M2(TSR,m,2);
+      
+		sitesInSystem++;
 
-	    blkS.size = sites;
-	    blkS.FSAwrite(sites,iter);
-	}//while
+		blkS.size = sitesInSystem;
+		blkS.FSAwrite(sitesInSystem,halfSweep);
+	    }// while
 
-	//cout<<"end "<<blkS.size<<" "<<sites<<endl;
-	sites = FSAend;
-	blkS.FSAread(sites,iter);
+	    sitesInSystem = minEnviromentSize;
+	    blkS.FSAread(sitesInSystem,halfSweep);
 
-	//sites++;
-  }//Iter
-  return 0;
+	}// for
+    }  // end of the finite size algorithm
+    return 0;
 } // end main

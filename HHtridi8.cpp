@@ -14,6 +14,35 @@
 #include "HHtridi8.h"
 
 /**
+ * @brief A function to transform an operator to the new (truncated) basis
+ *
+ * @param operator a matrix with the operator in the old basis
+ * @param transf_matrix a matrix transforming the old basis to the new one 
+ *
+ * The transformation matrix should be the (truncated) reduced density
+ * matrix that you obtain as a result of applying the
+ * truncateDensityMatrix function
+ */
+blitz::Array<double,2> transformOperator(const blitz::Array<double,2>& op, 
+	const blitz::Array<double,2>& transposed_transformation_matrix,
+	const blitz::Array<double,2>& transformation_matrix)
+{
+    blitz::firstIndex i;
+    blitz::secondIndex j;
+    blitz::thirdIndex k;
+
+    blitz::Array<double,2> tmp(op.rows(),
+	    transposed_transformation_matrix.cols());
+    tmp=sum(op(i,k)*transposed_transformation_matrix(k,j),k);
+
+    blitz::Array<double,2> result(transformation_matrix.rows(), 
+	    tmp.cols());
+    result=sum(transformation_matrix(i,k)*tmp(k,j),k);
+
+    return result;
+}
+
+/**
  * @brief A function to calculate the reduced density matrix 
  *
  * @param Psi the wavefunction with you want to calculate the density matrix 

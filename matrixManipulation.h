@@ -2,6 +2,21 @@
 #define MATRIX_MANIPULATION_H
  
 #include "blitz/array.h"
+#include "exceptions.h"
+
+/**
+ * @brief A function to create a identity matrix
+ */
+inline blitz::Array<double,2> createIdentityMatrix(int rows)
+{
+    if (!(rows>0))
+	throw dmrg::Exception("createIdentity: rows -ve");
+    blitz::Array<double,2> result(rows,rows);
+    result=0.0;
+    for (int i=0; i<rows; ++i)
+	result(i,i)=1.0;
+    return result;
+}
 
 /**
  * @brief A function to reduce a 4-index tensor to a matrix

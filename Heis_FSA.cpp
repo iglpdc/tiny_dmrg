@@ -108,26 +108,26 @@ int main()
     thirdIndex k;    fourthIndex l; 
 
     // build the Hamiltonian for two-sites only
-    int st = 2;     //start with a 2^2=4 state system
-    int sitesInSystem=2;     //# sites (SYSTEM)
-
     TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l);
     blkS.HAB.resize(4,4);
-    blkS.HAB = reduceM2M2(TSR,2,2);
+    blkS.HAB = reduceM2M2(TSR);
 
     TSR = Sz(i,k)*I2(j,l);
-    Array<double,2> SzAB = reduceM2M2(TSR,2,2);
+    Array<double,2> SzAB = reduceM2M2(TSR);
 
     TSR = Sm(i,k)*I2(j,l);
-    Array<double,2> SmAB = reduceM2M2(TSR,2,2);
+    Array<double,2> SmAB = reduceM2M2(TSR);
 
     TSR = Sp(i,k)*I2(j,l);
-    Array<double,2> SpAB = reduceM2M2(TSR,2,2);
+    Array<double,2> SpAB = reduceM2M2(TSR);
     // done building the Hamiltonian
 
     /**
      * Infinite system algorithm 
      */
+    int st = 2;     //start with a 2^2=4 state system
+    int sitesInSystem=2;     //# sites (SYSTEM)
+
     int truncflag = 0;
     int statesToKeepIFA=2; 
 
@@ -188,7 +188,7 @@ int main()
 	  0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
 
 	blkS.HAB.resize(2*st,2*st);            
-	blkS.HAB = reduceM2M2(TSR,st,2);
+	blkS.HAB = reduceM2M2(TSR);
 
 	if (truncflag < 3){
 	    int statesToKeep;
@@ -208,15 +208,15 @@ int main()
 	    //Operators for next iteration
 	    SzAB.resize(2*st,2*st);  
 	    TSR = I2st(i,k)*Sz(j,l);
-	    SzAB = reduceM2M2(TSR,st,2);
+	    SzAB = reduceM2M2(TSR);
 
 	    SpAB.resize(2*st,2*st);
 	    TSR = I2st(i,k)*Sp(j,l);
-	    SpAB = reduceM2M2(TSR,st,2);
+	    SpAB = reduceM2M2(TSR);
 
 	    SmAB.resize(2*st,2*st);
 	    TSR = I2st(i,k)*Sm(j,l);
-	    SmAB = reduceM2M2(TSR,st,2);        
+	    SmAB = reduceM2M2(TSR);        
 
 	    Habcd.resize(2*st,2*st,2*st,2*st);   //re-prepare superblock matrix
 	    Psi.resize(2*st,2*st);             //GS wavefunction
@@ -280,7 +280,7 @@ int main()
 		//Add spin to the system block only
 		TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
 		0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
-		blkS.HAB = reduceM2M2(TSR,m,2);
+		blkS.HAB = reduceM2M2(TSR);
       
 		sitesInSystem++;
 

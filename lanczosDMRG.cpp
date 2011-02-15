@@ -200,7 +200,7 @@ double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed)
     //complicated integer square root?
     int L = static_cast<int>(std::sqrt(1.0*nn));          
 
-    Ham2d=reduceM2M2(Hm,L,L);
+    Ham2d=reduceM2M2(Hm);
 
     Array<double,1> Psi(nn);  //return eigenvector
     double En;                //return eigenvalue

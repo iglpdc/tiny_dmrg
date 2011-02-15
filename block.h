@@ -8,8 +8,8 @@
 #ifndef BLOCK_H 
 #define BLOCK_H
 
-#include <blitz/array.h>
 #include <fstream>
+#include "blitz/array.h"
 
 BZ_USING_NAMESPACE(blitz)
 

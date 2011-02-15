@@ -8,5 +8,7 @@
 #ifndef TRED3_H
 #define TRED3_H
 
+#include "blitz/array.h"
+
 void tred3(blitz::Array<double,2>& a, blitz::Array<double,1>& d, blitz::Array<double,1>& e, int n);
 #endif // TRED3_H

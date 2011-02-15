@@ -9,6 +9,8 @@
 #ifndef HHTRIDI_H
 #define HHTRIDI_H  
 
+#include "blitz/array.h"
+
 blitz::Array<double,2> transformOperator(const blitz::Array<double,2>& op, 
 	const blitz::Array<double,2>& transposed_transformation_matrix,
 	const blitz::Array<double,2>& transformation_matrix);

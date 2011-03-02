@@ -1,13 +1,13 @@
 /** 
- * @file HHtridi8.h
+ * @file densityMatrix.h
  *
  * @brief Interface for the routines related to the calculation of the  
  * reduced density matrix
  *
  * Oct. 26, Roger Melko ORNL
  */
-#ifndef HHTRIDI_H
-#define HHTRIDI_H  
+#ifndef DENSITY_MATRIX_H
+#define DENSITY_MATRIX_H  
 
 #include "blitz/array.h"
 
@@ -22,4 +22,5 @@ blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>& Hm,
 
 blitz::Array<int,1> orderDensityMatrixEigenvalues(
 	blitz::Array<double,1>& density_matrix_eigenvalues);
-#endif //HHTRIDI_H 
+
+#endif //DENSITY_MATRIX_H 

@@ -11,7 +11,7 @@
 #include <fstream>
 #include "blitz/array.h"
 
-BZ_USING_NAMESPACE(blitz)
+//BZ_USING_NAMESPACE(blitz)
 
 ///Block class
 class BLOCK {
@@ -19,7 +19,7 @@ class BLOCK {
 		/// number of sites in the block
 		int size;    
 		/// A' plus right spin Hamiltonian: Blitz++ array
-		Array<double,2> HAB;   
+		blitz::Array<double,2> HAB;   
 
 		BLOCK();
 		void ISAwrite(const int sites);
@@ -68,16 +68,16 @@ void BLOCK::FSAwrite(const int sites,const int iter){
 
 void BLOCK::Write() {
 /// opens the output file and writes the Blitz++ array
-  ofstream fout;  
-  fout.open(fname,ios::out);
-  fout <<setprecision(12)<<HAB ;
+  std::ofstream fout;  
+  fout.open(fname,std::ios::out);
+  fout <<std::setprecision(12)<<HAB ;
   fout.close();
 } //Write
 
 void BLOCK::Read() {
 /// opens the input file and reads the Blitz++ array
-  ifstream fin;  
-  fin.open(fname,ios::in);
+  std::ifstream fin;  
+  fin.open(fname,std::ios::in);
   fin >> HAB ;
   fin.close();
 }//Read

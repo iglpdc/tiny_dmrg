@@ -21,42 +21,7 @@
 #include "matrixManipulation.h"
 #include "lanczosDMRG.h"
 #include "densityMatrix.h"
-
-BZ_USING_NAMESPACE(blitz)
-
-/**
- * @brief A function to calculate the minimum size of the enviroment
- *
- * @param m the number of states you are keeping
- * @param numberOfSites the number of sites of the system
- *
- * In the finite size algorithm you do not need to solve with DMRG because
- * you can do it exactly
- */
-double calculateMinEnviromentSize(int m, int numberOfSites)
-{
-    int result;
-    for (result=3; result<numberOfSites; result++)
-	if (powf(2.0,result) >= 2.0*m) break;
-    return result;
-}
-
-/**
- * @brief A function to print the energy in a fancy way
- *
- * @param groundStateEnergy 
- * @param 
- *
- * Just prints the thing: sites in the left block, sites in the right
- * block, and energy per site
- */
-void printGroundStateEnergy(int sitesInLeft, int sitesInRight, 
-	double groundStateEnergy)
-{
-    std::cout<<setprecision(16);
-    std::cout<<sitesInLeft<<" "<<sitesInRight\
-	<<" "<<groundStateEnergy/(sitesInLeft+sitesInRight)<<std::endl;
-}
+#include "main_helpers.h"
 
 int main()
 {
@@ -77,35 +42,32 @@ int main()
     ///create the environment block
     BLOCK blkE;  //the environment block
     //Matrices
-    Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
+    blitz::Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
 
-    Array<double,4> Habcd(4,4,4,4); //superblock hamiltonian
-    Array<double,2> Psi(4,4); // ground state wavefunction
-    Array<double,2> rhoTSR(4,4); // reduced density matrix
-    Array<double,2> OO(m,4);   //the TRUNCATION matrix
-    Array<double,2> OT(4,m);   // trasposed truncation matrix
+    blitz::Array<double,4> Habcd(4,4,4,4); //superblock hamiltonian
+    blitz::Array<double,2> Psi(4,4); // ground state wavefunction
+    blitz::Array<double,2> rhoTSR(4,4); // reduced density matrix
+    blitz::Array<double,2> OO(m,4);   //the TRUNCATION matrix
+    blitz::Array<double,2> OT(4,m);   // trasposed truncation matrix
 
-    Array<double,2> HAp;  //A' block hamiltonian
-    Array<double,2> SzB;   //Sz(left) operator  
-    Array<double,2> SmB;   //Sm(left) operator
-    Array<double,2> SpB;   //Sp(left) operator
+    blitz::Array<double,2> HAp;  //A' block hamiltonian
+    blitz::Array<double,2> SzB;   //Sz(left) operator  
+    blitz::Array<double,2> SmB;   //Sm(left) operator
+    blitz::Array<double,2> SpB;   //Sp(left) operator
 
-    // create identity matrices
-    Array<double,2> I2=createIdentityMatrix(2);
-    Array<double,2> I2st=createIdentityMatrix(4);
-
-    // Create pauli matrices
-    Array<double,2> Sz(2,2), Sp(2,2), Sm(2,2);
+    // create pauli matrices and identity matrix
+    blitz::Array<double,2> Sz(2,2), Sp(2,2), Sm(2,2);
     Sz = 0.5, 0,
        0, -0.5;
     Sp = 0, 1.0,
        0, 0;
     Sm = 0, 0,
        1.0, 0;
+    blitz::Array<double,2> I2=createIdentityMatrix(2);
 
     // tensor indices
-    firstIndex i;    secondIndex j; 
-    thirdIndex k;    fourthIndex l; 
+    blitz::firstIndex i;    blitz::secondIndex j; 
+    blitz::thirdIndex k;    blitz::fourthIndex l; 
 
     // build the Hamiltonian for two-sites only
     TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l);
@@ -113,13 +75,13 @@ int main()
     blkS.HAB = reduceM2M2(TSR);
 
     TSR = Sz(i,k)*I2(j,l);
-    Array<double,2> SzAB = reduceM2M2(TSR);
+    blitz::Array<double,2> SzAB = reduceM2M2(TSR);
 
     TSR = Sm(i,k)*I2(j,l);
-    Array<double,2> SmAB = reduceM2M2(TSR);
+    blitz::Array<double,2> SmAB = reduceM2M2(TSR);
 
     TSR = Sp(i,k)*I2(j,l);
-    Array<double,2> SpAB = reduceM2M2(TSR);
+    blitz::Array<double,2> SpAB = reduceM2M2(TSR);
     // done building the Hamiltonian
 
     /**
@@ -130,6 +92,7 @@ int main()
 
     int truncflag = 0;
     int statesToKeepIFA=2; 
+    blitz::Array<double,2> I2st=createIdentityMatrix(4);
 
     while (sitesInSystem <= (numberOfSites)/2 ) 
     {
@@ -161,7 +124,7 @@ int main()
 	OO.resize(statesToKeepIFA,rhoTSR.rows());
 	OT.resize(rhoTSR.rows(),statesToKeepIFA);
 	OO=truncateReducedDM(rhoTSR, statesToKeepIFA);   
-	OT=OO.transpose(secondDim, firstDim);
+	OT=OO.transpose(blitz::secondDim, blitz::firstDim);
 	// end decision
 	
 	//transform the operators to new basis
@@ -228,7 +191,7 @@ int main()
 	blkS.size = sitesInSystem;  //this is the size of the system block
 	blkS.ISAwrite(sitesInSystem);
     
-    }//end INFINITE SYSTEM ALGORITHM iteration
+    }//end INFINITE SYSTEM ALGORITHM 
   
     std::cout<<"End of the infinite system algorithm\n";
 
@@ -248,9 +211,11 @@ int main()
 	    while (sitesInSystem <= numberOfSites-minEnviromentSize)
 	    {
 		int sitesInEnviroment = numberOfSites - sitesInSystem;
+
+		// read the environment block from disk
 		blkE.FSAread(sitesInEnviroment,halfSweep);
 
-		// build the hamiltonian as a for index tensor
+		// build the hamiltonian as a four-index tensor
 		Habcd = blkE.HAB(i,k)*I2st(j,l)+I2st(i,k)*blkS.HAB(j,l)+
 		SzAB(i,k)*SzAB(j,l)+
 		0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
@@ -268,16 +233,16 @@ int main()
 		// calculate the reduced density matrix and truncate 
 		rhoTSR=calculateReducedDensityMatrix(Psi);
 	 
-		Array<double,2> OO=truncateReducedDM(rhoTSR, m);   
-		OT=OO.transpose(secondDim, firstDim);
+		blitz::Array<double,2> OO=truncateReducedDM(rhoTSR, m);   
+		OT=OO.transpose(blitz::secondDim, blitz::firstDim);
 	  
-		//transform the operators to new basis
+		// transform the operators to new basis
 		HAp=transformOperator(blkS.HAB, OT, OO);
 		SzB=transformOperator(SzAB, OT, OO);
 		SpB=transformOperator(SpAB, OT, OO);
 		SmB=transformOperator(SmAB, OT, OO);
 
-		//Add spin to the system block only
+		// add spin to the system block only
 		TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
 		0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
 		blkS.HAB = reduceM2M2(TSR);

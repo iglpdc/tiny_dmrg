@@ -108,22 +108,20 @@ blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>&
     // diagonalizes a tridiagonal matrix
     int rtn = tqli2(density_matrix_eigenvalues, e, nn, density_matrix, 1);
 
-    // now density_matrix(j,i) is the eigenvector corresponding to d[i]
+    // now density_matrix(j,i) is the eigenvector corresponding to
+    // density_matrix_eigenvalues[i]
 
     // check that the sum of the eigenvalues is close to 1.0
     if (fabs(1.0-sum(density_matrix_eigenvalues)) > 0.00001)
 	throw dmrg::Exception("sum_of_density_matrix_eigenvalues is not one");
 
     // get the indexes of the largest eigenvalues
-    blitz::Array<int,1> inx=orderDensityMatrixEigenvalues(density_matrix_eigenvalues);
+    blitz::Array<int,1> indexes=
+	orderDensityMatrixEigenvalues(density_matrix_eigenvalues);
 
-    // calculate the truncation error
-    double truncation_error = 0;
-    for (int kk=nn-1; kk<(nn-1-mm); kk--)
-    {
-	truncation_error += density_matrix_eigenvalues(kk);
-    }
-    //std::cout<<"truncation_error "<<" "<<truncation_error<<std::endl;
+    // calculate and print the truncation error
+    //std::cout<<std::setprecision(16)<<"truncation_error ";
+    //std::cout<<calculateTruncationError(density_matrix_eigenvalues, indexes, mm)<<'\n';
 
     // define the truncation matrix formed by the eigenvector corresponding 
     // to the largest eigevalues
@@ -134,7 +132,7 @@ blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>&
     {
 	for (int i=0; i<nn; i++)
 	{
-	    truncated_density_matrix(kk,i) = density_matrix(i,inx(nn-1-kk));   
+	    truncated_density_matrix(kk,i) = density_matrix(i,indexes(nn-1-kk));   
 	}
     }
     return truncated_density_matrix; 
@@ -177,11 +175,11 @@ blitz::Array<int,1> orderDensityMatrixEigenvalues(
 	int i=j-1;
 	while (i>=0 && density_matrix_eigenvalues(i) >a)
 	{
-	    density_matrix_eigenvalues(i+1)=density_matrix_eigenvalues(i);
+	    //density_matrix_eigenvalues(i+1)=density_matrix_eigenvalues(i);
 	    result(i+1)=result(i);
 	    i--;
 	}
-	density_matrix_eigenvalues(i+1)=a;
+	//density_matrix_eigenvalues(i+1)=a;
 	result(i+1)=b;
     }
 
@@ -189,4 +187,28 @@ blitz::Array<int,1> orderDensityMatrixEigenvalues(
     //std::cout<<"\n result\n"<<result;
     return result;
 }
-// end HHtridi8.cpp
+/**
+ * @brief A function to calculate the truncation error
+ *
+ * @param density_matrix_eigenvalues all of them
+ * @param indexes the permutation of the indexes of the eigenvalues that
+ * orders them in increasing value
+ * @param m number of states to keep
+ *
+ * @return a double with the truncation error
+ *
+ * The truncation error is given by the sum of the reduced density matrix
+ * eigenvalues corresponding to the eigenvectors that are truncated out
+ *
+ */
+double calculateTruncationError(const blitz::Array<double,1>& density_matrix_eigenvalues, 
+	const blitz::Array<int,1>& indexes, int m)
+{
+    double result = 0.0;
+    for (size_t i=0; i<density_matrix_eigenvalues.size()-m; ++i)
+    {
+	result+=density_matrix_eigenvalues(indexes(i));
+    }
+    return result;
+}
+// end densityMatrix.cpp

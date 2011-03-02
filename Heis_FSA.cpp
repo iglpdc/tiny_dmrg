@@ -20,7 +20,7 @@
 #include "block.h"
 #include "matrixManipulation.h"
 #include "lanczosDMRG.h"
-#include "HHtridi8.h"
+#include "densityMatrix.h"
 
 BZ_USING_NAMESPACE(blitz)
 

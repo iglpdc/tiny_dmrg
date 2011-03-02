@@ -14,7 +14,7 @@ ifdef threads
 CXXFLAGS+=-pthreads
 endif
 
-OBJS = tqli2.o tred3.o Heis_FSA.o HHtridi8.o lanczosDMRG.o
+OBJS = tqli2.o tred3.o Heis_FSA.o densityMatrix.o lanczosDMRG.o
 
 $(exec): $(OBJS)
 	g++ $(CXXFLAGS) $(OBJS)
@@ -24,8 +24,8 @@ tred3.o: tred3.cpp tred3.h
 	g++ -c $(CXXFLAGS) tred3.cpp
 lanczosDMRG.o: lanczosDMRG.cpp lanczosDMRG.h lanczosDMRG_helpers.h tqli2.o
 	g++ -c $(CXXFLAGS) lanczosDMRG.cpp
-HHtridi8.o: HHtridi8.cpp tred3.o tqli2.o
-	g++ -c $(CXXFLAGS) HHtridi8.cpp
+densityMatrix.o: densityMatrix.cpp tred3.o tqli2.o
+	g++ -c $(CXXFLAGS) densityMatrix.cpp
 Heis_FSA.o: Heis_FSA.cpp matrixManipulation.h
 	g++ -c $(CXXFLAGS) Heis_FSA.cpp
 

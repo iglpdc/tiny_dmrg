@@ -19,4 +19,7 @@ blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi)
 
 blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>& Hm, 
 	const int mm);
+
+blitz::Array<int,1> orderDensityMatrixEigenvalues(
+	blitz::Array<double,1>& density_matrix_eigenvalues);
 #endif //HHTRIDI_H 

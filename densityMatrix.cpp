@@ -1,5 +1,5 @@
 /** 
- * @file HHtridi8.cpp
+ * @file densityMatrix.cpp
  *
  * @brief Implementation for the routines related to the calculation of the  
  * reduced density matrix
@@ -11,13 +11,16 @@
 #include "exceptions.h"
 #include "tred3.h"
 #include "tqli2.h"
-#include "HHtridi8.h"
+#include "densityMatrix.h"
 
 /**
  * @brief A function to transform an operator to the new (truncated) basis
  *
  * @param operator a matrix with the operator in the old basis
- * @param transf_matrix a matrix transforming the old basis to the new one 
+ * @param transf_matrix a matrix transforming the old basis to the new 
+ * (truncated) one 
+ *
+ * @return a matrix with the transformed operator
  *
  * The transformation matrix should be the (truncated) reduced density
  * matrix that you obtain as a result of applying the
@@ -45,7 +48,11 @@ blitz::Array<double,2> transformOperator(const blitz::Array<double,2>& op,
 /**
  * @brief A function to calculate the reduced density matrix 
  *
- * @param Psi the wavefunction with you want to calculate the density matrix 
+ * @param psi the wavefunction with you want to calculate the density matrix 
+ *
+ * @return a matrix with the reduced density matrix
+ *
+ * The wavefunction has to be written as a matrix.
  *
  */
 blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi)
@@ -95,47 +102,22 @@ blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>&
     blitz::Array<double,1> e(nn);
     blitz::Array<double,1> density_matrix_eigenvalues(nn); 
 
-    blitz::Array<double,2> truncated_density_matrix(mm, nn); 
-
-    // Householder reduction: reduces symmetric matrix to a tridiagonal
-    // form
+    // reduce symmetric matrix to a tridiagonal form (Householder reduct.)
     tred3(density_matrix, density_matrix_eigenvalues, e, nn);
 
-    // diagonalizes a triangular matrix
+    // diagonalizes a tridiagonal matrix
     int rtn = tqli2(density_matrix_eigenvalues, e, nn, density_matrix, 1);
 
     // now density_matrix(j,i) is the eigenvector corresponding to d[i]
 
-    // check that the sum of the eigenvalues is 1.0 and stop if not
-    double sum_of_density_matrix_eigenvalues=sum(density_matrix_eigenvalues);
+    // check that the sum of the eigenvalues is close to 1.0
+    if (fabs(1.0-sum(density_matrix_eigenvalues)) > 0.00001)
+	throw dmrg::Exception("sum_of_density_matrix_eigenvalues is not one");
 
-    if (fabs(1.0-sum_of_density_matrix_eigenvalues) > 0.00001)
-	std::cout<<"sum_of_density_matrix_eigenvalues error:"\
-	    <<sum_of_density_matrix_eigenvalues<<std::endl;	
+    // get the indexes of the largest eigenvalues
+    blitz::Array<int,1> inx=orderDensityMatrixEigenvalues(density_matrix_eigenvalues);
 
-    blitz::Array<int,1> inx(nn);
-
-    for (int j=0; j<nn; j++) inx(j)=j;
-
-    //STRIAGHT INSERTION SORT O(N^2)    
-    for (int j=1; j<nn; j++)
-    {         
-	double a = density_matrix_eigenvalues(j);
-	int b = inx(j);
-	int i=j-1;
-	while (i>=0 && density_matrix_eigenvalues(i) >a)
-	{
-	    density_matrix_eigenvalues(i+1)=density_matrix_eigenvalues(i);
-	    inx(i+1)=inx(i);
-	    i--;
-	}
-	density_matrix_eigenvalues(i+1)=a;
-	inx(i+1)=b;
-    }
-    //std::cout<<"density_matrix_eigenvalues\n"<<density_matrix_eigenvalues;
-    //std::cout<<"\n inx\n"<<inx;
-
-    // calculate the truncated error
+    // calculate the truncation error
     double truncation_error = 0;
     for (int kk=nn-1; kk<(nn-1-mm); kk--)
     {
@@ -145,6 +127,9 @@ blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>&
 
     // define the truncation matrix formed by the eigenvector corresponding 
     // to the largest eigevalues
+
+    blitz::Array<double,2> truncated_density_matrix(mm, nn); 
+
     for (int  kk=0; kk<mm; kk++)
     {
 	for (int i=0; i<nn; i++)
@@ -153,5 +138,55 @@ blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>&
 	}
     }
     return truncated_density_matrix; 
+}
+
+/** 
+ * @brief A function to order the reduced density matrix eigenvalues
+ *
+ * Given the (reduced) density matrix eigenvalues in an array this function
+ * returns an array with the permutaion of the indexes corresponding to
+ * ordering the eigenvalues in decreasing order.
+ *
+ * @param density_matrix_eigenvalues the (reduced) density matrix
+ * eigenvalues
+ *
+ * @result an array with the permutaion of the indexes corresponding to
+ * ordering the eigenvalues in decreasing order. 
+ *
+ * E.g. if density_matrix_eigenvalues={ 0.15, 0.8, 0.05 } returns
+ * result= {1,0,2}
+ *
+ */
+blitz::Array<int,1> orderDensityMatrixEigenvalues(
+	blitz::Array<double,1>& density_matrix_eigenvalues) 
+{ 
+    int nn=density_matrix_eigenvalues.size(); 
+    
+    if (nn<1)
+	throw dmrg::Exception("orderDensityMatrixEigenvalues: no \
+		eigenvalues passed");
+
+    blitz::Array<int,1> result(nn);
+    for (int j=0; j<nn; j++) result(j)=j;
+
+    //STRIAGHT INSERTION SORT O(N^2)    
+    for (int j=1; j<nn; j++)
+    {         
+	double a = density_matrix_eigenvalues(j);
+	int b = result(j);
+	int i=j-1;
+	while (i>=0 && density_matrix_eigenvalues(i) >a)
+	{
+	    density_matrix_eigenvalues(i+1)=density_matrix_eigenvalues(i);
+	    result(i+1)=result(i);
+	    i--;
+	}
+	density_matrix_eigenvalues(i+1)=a;
+	result(i+1)=b;
+    }
+
+    //std::cout<<"density_matrix_eigenvalues\n"<<density_matrix_eigenvalues;
+    //std::cout<<"\n result\n"<<result;
+    return result;
 }
 // end HHtridi8.cpp

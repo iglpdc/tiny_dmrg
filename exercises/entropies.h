@@ -40,7 +40,7 @@
  * This function assumes that the eigenvalues are OK, i.e.
  * \f$\lambda_{i}\in[0,1],\quad\each i, \qquad \sum_{i}\lambda_{i}\f$
  */
-inline double caculateEntanglementEntropy(const blitz::Array<double,1>& density_matrix_eigenvalues)
+inline double calculateEntanglementEntropy(const blitz::Array<double,1>& density_matrix_eigenvalues)
 {
     double result=0.0;
     for (size_t i=0; i<density_matrix_eigenvalues.size(); ++i)
@@ -89,7 +89,7 @@ inline double calculateRenyiEntropy(const blitz::Array<double,1>& density_matrix
  * This specialization avoids the problem of dividing by zero.
  */
 template<>
-inline double calculateReyniEntropy<1>(const blitz::Array<double,1>& density_matrix_eigenvalues)
+inline double calculateRenyiEntropy<1>(const blitz::Array<double,1>& density_matrix_eigenvalues)
 {
     return calculateEntanglementEntropy(density_matrix_eigenvalues);
 }

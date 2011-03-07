@@ -1,19 +1,22 @@
-//Oct. 26, Roger Melko ORNL
-//
-//Exact diagonalization program for a real, symmetric matrix
-//Householder reduction to tridiagonal form, then ED
-//
-//Takes input as Blitz++ Arrays<>
-//
+/**
+ * @file tred3.cpp
+ *
+ * @brief Exact diagonalization program for a real, symmetric matrix.
+ * Householder reduction to tridiagonal form, then ED.
+ * Takes input as Blitz++ Arrays<>
+ *
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date February March 7th, 2011
+ *
+ */
+
 //set the below value to "1" if you want the eigenvectors, and to "0" if not
 #define EVECTS 1  
 
 #include <cmath>
 #include "blitz/array.h"
 #include "tred3.h"
-
-//BZ_USING_NAMESPACE(blitz)
-//using namespace std;
 
 /*********************************************************************/ 
 ///

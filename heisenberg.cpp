@@ -1,11 +1,11 @@
 /** 
- * @file Heis_FSA.cpp
+ * @file heisenberg.cpp
  * @brief The main c++ file for the DMRG
  * 
  * @mainpage
  * @author Roger Melko 
  * @author Ivan Gonzalez
- * @date February 9th, 2011
+ * @date February March 7th, 2011
  * 
  * @brief Elementry DMRG simulation for the Heisenberg chain; 
  *  \f$H= \sum_{ij} (S^x_i S^x_j + S^y_i S^y_j +  S^z_i S^z_j ) \f$
@@ -45,10 +45,10 @@ int main()
     blitz::Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
 
     blitz::Array<double,4> Habcd(4,4,4,4); //superblock hamiltonian
-    blitz::Array<double,2> Psi(4,4); // ground state wavefunction
-    blitz::Array<double,2> rhoTSR(4,4); // reduced density matrix
-    blitz::Array<double,2> OO(m,4);   //the TRUNCATION matrix
-    blitz::Array<double,2> OT(4,m);   // trasposed truncation matrix
+    blitz::Array<double,2> Psi(4,4);       // ground state wavefunction
+    blitz::Array<double,2> rhoTSR(4,4);    // reduced density matrix
+    blitz::Array<double,2> OO(m,4);        //the TRUNCATION matrix
+    blitz::Array<double,2> OT(4,m);        // trasposed truncation matrix
 
     blitz::Array<double,2> HAp;  //A' block hamiltonian
     blitz::Array<double,2> SzB;   //Sz(left) operator  

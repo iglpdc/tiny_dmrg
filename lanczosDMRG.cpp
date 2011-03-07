@@ -3,7 +3,9 @@
  *
  * @brief Lanczos routine for performing ED in DMRG
  *
- * Roger Melko Aug. 4 2006
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date February March 7th, 2011
  */
 #include <cmath>
 #include <iomanip>

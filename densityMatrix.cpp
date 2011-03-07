@@ -4,7 +4,9 @@
  * @brief Implementation for the routines related to the calculation of the  
  * reduced density matrix
  *
- * Oct. 26, Roger Melko ORNL
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date February March 7th, 2011
  */
 
 #include "blitz/array.h"

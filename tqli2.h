@@ -3,7 +3,6 @@
  *
  * @brief Interface for the tqli2 function using blitz arrays
  *
- * Roger Melko Aug. 4 2006
  */
 #ifndef TQLI2_H
 #define TQLI2_H

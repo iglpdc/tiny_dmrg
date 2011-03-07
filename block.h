@@ -3,7 +3,9 @@
  *
  * @brief A file that contains the block class used in the DMRG
  *
- * Roger Melko and Ivan Gonzalez 
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date February March 7th, 2011
  */
 #ifndef BLOCK_H 
 #define BLOCK_H

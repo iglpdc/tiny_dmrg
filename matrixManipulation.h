@@ -1,3 +1,12 @@
+/** 
+ * @file matrixManipulation.h
+ * @brief Functions for handling matrices
+ * 
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date February 9th, 2011
+ * 
+ */
 #ifndef MATRIX_MANIPULATION_H
 #define MATRIX_MANIPULATION_H
  

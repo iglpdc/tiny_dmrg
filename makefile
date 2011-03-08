@@ -37,7 +37,7 @@ clean:
 	rm *.o
 
 doc:
-	doxygen ./bin/doxy_sse.cfg
+	doxygen ./bin/doxy_sse.cfg -w html banner.html
 
 tarball:
 	./bin/make_tarball

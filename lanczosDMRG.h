@@ -1,3 +1,12 @@
+/**
+ * @file lanczosDMRG.h
+ *
+ * @brief headers for Lanczos ED
+ *
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date February March 7th, 2011
+ */
 #ifndef LANCZOS_DMRG_H
 #define LANCZOS_DMRG_H
 

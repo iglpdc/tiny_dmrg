@@ -1,3 +1,12 @@
+/**
+ * @file lanczosDMRG_helpers.h
+ *
+ * @brief useful functions for the Lanczos ED
+ *
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date February March 7th, 2011
+ */
 #ifndef LANCZOS_DMRG_HELPERS_H
 #define LANCZOS_DMRG_HELPERS_H
  

@@ -1,5 +1,5 @@
 /** 
- * @file main_helpers.cpp
+ * @file main_helpers.h
  * @brief A couple of small functions needed in the main DMRG file
  * 
  * @author Roger Melko 

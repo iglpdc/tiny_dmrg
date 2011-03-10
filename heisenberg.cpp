@@ -2,7 +2,6 @@
  * @file heisenberg.cpp
  * @brief The main c++ file for the DMRG
  *
- * \mainpage
  * 
  * @author Roger Melko 
  * @author Ivan Gonzalez

@@ -2,10 +2,11 @@
  * @file heisenberg.cpp
  * @brief The main c++ file for the DMRG
  * 
- * @mainpage
  * @author Roger Melko 
  * @author Ivan Gonzalez
  * @date February March 7th, 2011
+ *
+ * @include mainpageForDoygen.cpp
  * 
  * @brief Elementry DMRG simulation for the Heisenberg chain; 
  *  \f$H= \sum_{ij} (S^x_i S^x_j + S^y_i S^y_j +  S^z_i S^z_j ) \f$

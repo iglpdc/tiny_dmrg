@@ -4,8 +4,9 @@
  * 
  * @author Roger Melko 
  * @author Ivan Gonzalez
- * @date February 9th, 2011
- * 
+ * @date $Date$
+ *
+ * $Revision$ 
  */
 #ifndef MATRIX_MANIPULATION_H
 #define MATRIX_MANIPULATION_H

@@ -1,7 +1,7 @@
 /**
  * @file mainpage.h
  *
- * @brief Just file with only comments to cheat Doxygen to make a nice
+ * @brief Just file with comments only to cheat Doxygen to make a nice
  * mainpage
  *
  * \mainpage
@@ -11,7 +11,7 @@
  * @date March 18th 2011
  *
  * @brief Elementry DMRG simulation for the Heisenberg chain; 
- *  \f$H= \sum_{ij} (S^x_i S^x_j + S^y_i S^y_j +  S^z_i S^z_j ) \f$
+ *  \f$H= \sum_{i} (S^x_i S^x_{i+1} + S^y_i S^y_{i+1} +  S^z_i S^z_{i+1} ) \f$
  *
  * <ul> 
  *  <li> Begins with the "symmetric" infinite system algorithm to build up the chain
@@ -25,6 +25,7 @@
  * <ul>
  * <li> \subpage start
  * <li> \subpage exercises   
+ * <li> \subpage people   
  * </ul>
  *
  * \page start Getting Started
@@ -35,14 +36,15 @@
  * We have succesfully compiled the code with the following OS and
  * compilers:
  *
- * <ul> <li> Mac OS 10.4, 10.5, and 10.6 with the gcc compiler version
- * >4.0 <li> Windows 7 with MinGW <li> Linux with with the gcc compiler
+ * <ul> <li> Mac OS 10.4, 10.5, and 10.6 with the gcc compiler version >4.0 
+ * (you just need to install the Developer Tools)
+ * <li> Windows 7 with <a href="http://www.mingw.org/">MinGW</a> <li> Linux with with the gcc compiler
  * version >4.0 </ul>
  *
- * No libraries or other software are required. Although having make and
+ * No libraries or other software are required, although having installed make and
  * some plotting software may be handy.
  *
- * \section download Download and install
+ * \section download Download and Install
  *
  * You can get the source code in 
  * <a href="http://saskeram.cmt.uwaterloo.ca/dmrg_loo/dmrgloo.tar.gz">this link</a>. To uncompress the tarball do:
@@ -56,7 +58,16 @@
  * To compile the code just use in the directory that contains your source
  * files: 
  *
- * \code $ cd ./dmrgloo $ make \endcode
+ * \code 
+ * $ cd ./dmrgloo 
+ * $ make 
+ * \endcode
+ *
+ * If you do not have make installed, run this command instead:
+ *
+ * \code
+ * $ g++ -c -O3 -I. tqli2.cpp tred3.cpp heisenberg.cpp densityMatrix.cpp lanczosDMRG.cpp
+ * \endcode
  *
  * This will make a executable file called a.out that
  * implements the DMRG algorithm for the one-dimensional Heisenberg model.
@@ -87,38 +98,45 @@
  *
  *
  * \page exercises Exercises
+ * 
+ * \section heisenberg Calculation of the energies of the Heisenberg model
  *
  * The first goal of the tutorial is to give you some background on the
- * implementation of the DMRG algorithm. 
+ * implementation of the DMRG algorithm by looking at an actual code  
+ * for the Heisenberg model.
  *
- * <ul> <li> Check out the different pages in this website and get
- * familiar with the code.  <li> Plot the energies as a function of the
- * site <li> Compare the energy you obtained with the exact solution from
- * the Bethe Ansatz (put the number here).  <li> Run the code with
- * different parameters and see the differences </ul> 
+ * <ul> 
+ * <li> Check out the documentation in this website and get familiar with the code.  
+ * <li> Run the code and plot the energies as a function of the
+ * site. <li> Compare the energy you obtain with the exact solution from
+ * the Bethe Ansatz.  <li> Run the code with
+ * different parameters and see the differences. </ul> 
  *
- * After you have played with the code a bit, we propose to implement to
- * new features on it. 
- * 
+ * The exact result (Bethe Ansatz) for the infinite chain is \f$E_{0}=\frac{1}{4}-\ln 2\f$.
+ *
+ *
+ *
  * \section entanglement Calculation of the entanglement entropy
  *
- * Implement a function to calculate the (von Neumman) entanglement
+ * Implement a function to calculate the von Neumman entanglement
  * entropy at every DMRG step and print the result on screen as is done
- * with the energy.
+ * for the energy. Remember that the von Neumann entanglement entropy is defined as:
  *
- * Remember that the (von Neumann) entanglement entropy is defined as \f$
- * S_{vN}(l)=-tr(\rho_{l}\ln\rho_{l})=-\sum_{i}\lambda_{i}\ln\lambda_{i}\f$
+ * \f$S_{vN}(l)=-tr(\rho_{l}\ln\rho_{l})=-\sum_{i}\lambda_{i}\ln\lambda_{i}\f$,
+ *
  * where \f$\lambda_{i}\f$ are the eigenvalues of the reduced density
  * matrix \f$\rho_{l}\f$.
  *
  * Plot the entanglement entropy and analyze your results. A detailed
- * explanation of the behaviour of the entanglement entropy in this paper
- * (cite Affleck's paper)
+ * explanation of the behaviour of the entanglement entropy is found in
+ * <a href="http://prl.aps.org/abstract/PRL/v96/i10/e100603">Phys. Rev. Lett. 96,
+ * 100603 (2006)</a>
+ *
  *
  * \section ising Ising model in a tranverse field 
  *
  * Implement the DMRG algorithm for the one-dimensional S=1/2 Ising model
- * in a tranverse field.  The Hamiltonian of the Ising model in a
+ * in a transverse magnetic field. The Hamiltonian of the Ising model in a
  * transverse field is:
  *
  * \f$H=J\sum_{i}S^{x}_{i}S^{x}_{i+1}+\Gamma\sum_{i}S^{z}_{i}\f$
@@ -126,22 +144,27 @@
  * where \f$\vec{S}\f$ are the spin operators, \f$J<0\f$ is the
  * ferromagnetic coupling between neighboring spins, and \f$\Gamma\f$ is a
  * magnetic field. This model is important in condensed matter physics as
- * it's one the simplest models having a quantum phase transition (QPT)): at
+ * the simplest model having a quantum phase transition (QPT): at
  * \f$h_{c}=0.5\Gamma/J\f$ the ground state of the system changes from a
  * ferromagnetic to a paramagnetic phase.
  *
- * The main point of this exercise is to get used with the way the
- * hamiltonian is written in DMRG (splitting the whole chain in system and
+ * The main point of this exercise is to get used to the way the
+ * hamiltonian is written within DMRG (splitting the whole chain in system and
  * environment). 
  *
  * <ul>
- * <li> Modify the heisenberg.cpp file changing the Hamiltonian to do the
- * new model
+ * <li> Modify the heisenberg.cpp file, replacing the Hamiltonian by
+ * the one of the Ising model.
  * <li> Think which operators you need to construct the Hamiltonian and
- * do the proper updates for them
- * <li> Plot the energies as a function to the magnetic field 
- * (you will to enter a new parameter corresponding to \f$h=\Gamma/J\f$)
+ * do the proper updates for them.
+ * <li> Plot the energies in the center of the chain as a function to the magnetic field 
+ * (you will need a new parameter corresponding to \f$h=\Gamma/J\f$).
  * <li> Plot the entanglement entropy as in the previous exercise. Do you
- * see something when at the QPT?
+ * see something at the QPT?
  * </ul>
+ *
+ * \page people People
+ *
+ * Roger Melko, Ivan Gonzalez, Ann Kallin, and Kevin Resch
+ *
  */

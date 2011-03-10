@@ -3,6 +3,11 @@
  *
  * @brief Interface for the tred3 function using blitz arrays
  *
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date $Date$
+ *
+ * $Revision$ 
  */
 #ifndef TRED3_H
 #define TRED3_H

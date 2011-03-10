@@ -1,8 +1,12 @@
 /**
  * @file exceptions.h
  * @brief A file with a class for DMRG exceptions
- * @author Ivan Gonzalez and Roger Melko
- * @date 2007-10-29
+ *
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date $Date$
+ *
+ * $Revision$ 
  *
  * This file defines a class for exceptions derived from std::logic_error
  * to be used anywhere in the code

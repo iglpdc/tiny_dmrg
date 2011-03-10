@@ -5,7 +5,9 @@
  *
  * @author Roger Melko 
  * @author Ivan Gonzalez
- * @date February March 7th, 2011
+ * @date $Date$
+ *
+ * $Revision$ 
  */
 #ifndef LANCZOS_DMRG_HELPERS_H
 #define LANCZOS_DMRG_HELPERS_H

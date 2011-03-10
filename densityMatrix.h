@@ -4,7 +4,11 @@
  * @brief Interface for the routines related to the calculation of the  
  * reduced density matrix
  *
- * Oct. 26, Roger Melko ORNL
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date $Date$
+ *
+ * $Revision$ 
  */
 #ifndef DENSITY_MATRIX_H
 #define DENSITY_MATRIX_H  

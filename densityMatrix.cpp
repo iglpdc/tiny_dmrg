@@ -6,9 +6,10 @@
  *
  * @author Roger Melko 
  * @author Ivan Gonzalez
- * @date February March 7th, 2011
+ * @date $Date$
+ *
+ * $Revision$ 
  */
-
 #include "blitz/array.h"
 #include "exceptions.h"
 #include "tred3.h"

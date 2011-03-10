@@ -5,9 +5,11 @@
  * 
  * @author Roger Melko 
  * @author Ivan Gonzalez
- * @date March 18th 2011
+ * @date $Date$
  *
- * @brief Elementry DMRG simulation for the Heisenberg chain; 
+ * $Revision$ 
+ *
+ * Elementary DMRG simulation for the Heisenberg chain; 
  *  \f$H= \sum_{ij} (S^x_i S^x_j + S^y_i S^y_j +  S^z_i S^z_j ) \f$
  *
  * <ul> 

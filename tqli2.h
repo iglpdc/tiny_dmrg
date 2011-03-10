@@ -3,6 +3,11 @@
  *
  * @brief Interface for the tqli2 function using blitz arrays
  *
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date $Date$
+ *
+ * $Revision$ 
  */
 #ifndef TQLI2_H
 #define TQLI2_H

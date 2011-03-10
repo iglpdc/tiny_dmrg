@@ -57,7 +57,7 @@ inline double calculateEntanglementEntropy(const blitz::Array<double,1>& density
  *
  * The Renyi entropy of order N is defined as:
  * 
- * \f$S_{n}(A)\equiv \frac{1}{1-n}\ln \[tr(\rho^{n}_{A})]
+ * \f$S_{n}(A)\equiv \frac{1}{1-n}\ln \[tr(\rho^{n}_{A})]\f$
  *
  * where \f$\rho_{A}\f$ is the reduce density matrix of part \f$A\f$. When
  * \f$\rho_{A}\f$ is diagonalized (\f$\lambda_{i}\f$ being its eigenvalues

@@ -59,7 +59,7 @@
  * files: 
  *
  * \code 
- * $ cd ./dmrgloo 
+ * $ cd ./dmrg_loo 
  * $ make 
  * \endcode
  *

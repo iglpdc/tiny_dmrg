@@ -1,7 +1,7 @@
 /**
  * @file mainpage.h
  *
- * @brief Just file with comments only to cheat Doxygen to make a nice
+ * @brief A file with comments only to cheat Doxygen to make a nice
  * mainpage
  *
  * \mainpage

@@ -47,11 +47,11 @@
  * \section download Download and Install
  *
  * You can get the source code in 
- * <a href="http://saskeram.cmt.uwaterloo.ca/dmrg_loo/dmrgloo.tar.gz">this link</a>. To uncompress the tarball do:
+ * <a href="http://saskeram.cmt.uwaterloo.ca/dmrg_loo/dmrg_loo.tar.gz">this link</a>. To uncompress the tarball do:
  *
- * \code $ tar -xzvf dmrgloo.tar.gz \endcode
+ * \code $ tar -xzvf dmrg_loo.tar.gz \endcode
  *
- * This will uncompress the source code in a directory called ./dmrgloo
+ * This will uncompress the source code in a directory called ./dmrg_loo
  *
  * \section compile How to compile the code
  *

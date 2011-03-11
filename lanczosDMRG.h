@@ -5,7 +5,7 @@
  *
  * @author Roger Melko 
  * @author Ivan Gonzalez
- * @date $Date$
+ * $Date$
  *
  * $Revision$ 
  */

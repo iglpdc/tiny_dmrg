@@ -80,7 +80,7 @@ blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi)
  * @brief A function calculate the density matrix eigenvalues
  *
  * @param density_matrix the reduced density matrix
- * @param mm number of density matrix eigenvalues to keep
+ * @param m number of density matrix eigenvalues to keep
  *
  * @return truncated_density_matrix the truncated reduced density matrix
  *

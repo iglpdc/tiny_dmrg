@@ -16,6 +16,10 @@
 
 /**
  * @brief A function to create a identity matrix
+ *
+ * Simply returns the identity matrix 
+ *
+ * @param rows the number of rows (or columns) of the matrix
  */
 inline blitz::Array<double,2> createIdentityMatrix(int rows)
 {
@@ -31,8 +35,27 @@ inline blitz::Array<double,2> createIdentityMatrix(int rows)
 /**
  * @brief A function to reduce a 4-index tensor to a matrix
  *
- * Reduces a m,2,m,2 matrix to a 2m*2m matrix 
- * over the direct product basis of 2 spins
+ * @param tensor a 4-index tensor to be reduced
+ * @returns a matrix with the same elements as the tensor
+ *
+ * Reduces a m,2,m,2 matrix to a 2m*2m matrix. We need to do this a few
+ * times in the code, as we construct the operators in the hamiltonian in
+ * the direct product basis. The basis is written as the direct product of
+ * four different basis: 
+ *
+ * <ol>
+ * <li> the basis for the system block but the last site,
+ * <li> the basis for the last site in the system block, 
+ * <li> the basis for the last site in the environment block,
+ * <li> and the basis for the environment block but the last site.
+ * </ol>
+ * 
+ * Typically we build a 4-index tensor by multiplying the operators for
+ * the system block and then use this function to make a matrix out of the
+ * tensor (simply rearranging the indexes.) The same proceudre is repeate
+ * for the environment. Then the tensor for the system and enviroment
+ * is build multiplying these two matrices. Finally the latter tensor is
+ * reduced to a matrix by using this function again.
  */
 inline blitz::Array<double,2> reduceM2M2(const blitz::Array<double,4>& tensor)
 {

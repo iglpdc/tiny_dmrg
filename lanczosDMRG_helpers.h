@@ -39,7 +39,6 @@ inline double calculateNorm(const blitz::Array<double,1>& V)
   double norm = dotProduct(V,V);           
   return sqrt(norm);
 }
-
 /**
  * @brief A function to randomize a wavefunction
  *

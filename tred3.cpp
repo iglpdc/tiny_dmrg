@@ -1,9 +1,8 @@
 /**
  * @file tred3.cpp
  *
- * @brief Exact diagonalization program for a real, symmetric matrix.
- * Householder reduction to tridiagonal form, then ED.
- * Takes input as Blitz++ Arrays.
+ * @brief Householder reduction for a real, symmetric matrix to a
+ * tridiagonal form
  *
  * @author Roger Melko 
  * @author Ivan Gonzalez
@@ -21,13 +20,18 @@
 
 /**
  *
- * @brief Householder reduces a real symmetric matrix a to tridiagonal form
+ * @brief A function to reduce a real symmetric matrix a to tridiagonal form
  *
- * @param a is the matrix
+ * @param a the symmetric matrix you want to tridiagonalize
+ * @param d an array with the elements in the diagonal of the matrix
+ * @param e an array with the elements in the off-diagonal of the matrix
+ * @param n an int with the size of the array d
  *
- * On output, a is replaced by the orthogonal matrix effecting the transformation.
- * The diagonal elements are stored in d[], and the offdiagonal elements are
- * stored in e[].
+ * Implements the Householder reduction. On entrance d, and e can be
+ * garbage.
+ * On return, a is replaced by the orthogonal matrix effecting the 
+ * transformation, the diagonal elements are stored in d, and the 
+ * off-diagonal elements are stored in e
  */
 void tred3(blitz::Array<double,2>& a, blitz::Array<double,1>& d, blitz::Array<double,1>& e, int n)
 {

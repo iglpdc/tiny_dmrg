@@ -1,7 +1,7 @@
 /**
  * @file tqli2.cpp
  *
- * @brief Implemantation for the tqli2 function using blitz arrays
+ * @brief Implementation for the tqli2 function using blitz arrays
  *
  * @author Roger Melko 
  * @author Ivan Gonzalez
@@ -18,18 +18,28 @@
 /**
  * @brief A function to diagonalize a tridiagonal matrix
  *
- * April 2005, Roger Melko, modified from Numerical Recipies in C v.2
- * modified from www.df.unipi.it/~moruzzi/
+ * @param d an array with the elements in the diagonal of the matrix
+ * @param e an array with the elements in the off-diagonal of the matrix
+ * @param n an int with the size of the array d
+ * @param z an matrix with the eigenvectors of the diagonal matrix
+ * @param Evects an int to control whether you calculate the eigenvectors
+ * or not
+ *
+ * @return an int with code to check success (1) or failure (0). (Note the
+ * evil use of the flag.)
+ *
  * Diagonalizes a tridiagonal matrix: d[] is input as the diagonal elements,
  * e[] as the off-diagonal.  If the eigenvalues of the tridiagonal matrix
  * are wanted, input z as the identity matrix.  If the eigenvalues of the
  * original matrix reduced by tred2 are desired, input z as the matrix
  * output by tred2.  The kth column of z returns the normalized eigenvectors,
  * corresponding to the eigenvalues output in d[k].
+ * April 2005, Roger Melko, modified from Numerical Recipies in C v.2
+ * Modified from www.df.unipi.it/~moruzzi/
  * Feb 23 2005: modified to use Blitz++ arrays
  */
-int tqli2(blitz::Array<double,1>& d, blitz::Array<double,1>& e, int n, blitz::Array<double,2>& z, 
-	const int Evects)
+int tqli2(blitz::Array<double,1>& d, blitz::Array<double,1>& e, int n, 
+	blitz::Array<double,2>& z, const int Evects)
 {
   int m,l,iter,i,k;
   double s,r,p,g,f,dd,c,b;

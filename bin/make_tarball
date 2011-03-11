@@ -1,8 +1,8 @@
 #!/bin/bash
 svn up
 rev=$(svnversion -n)
-TMPDIR=./dmrgloo
-TARBALL=./dmrgloo.tar.gz
+TMPDIR=./dmrg_loo
+TARBALL=./dmrg_loo.tar.gz
 svn export `svn info | grep URL: | awk '{print $2}'` $TMPDIR
 tar -cvzf $TARBALL $TMPDIR
 rm -rf $TMPDIR

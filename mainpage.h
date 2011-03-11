@@ -124,38 +124,13 @@
  *
  * \f$S_{vN}(l)=-tr(\rho_{l}\ln\rho_{l})=-\sum_{i}\lambda_{i}\ln\lambda_{i}\f$,
  *
- * where \f$\lambda_{i}\f$ are the eigenvalues of the reduced density
- * matrix \f$\rho_{l}\f$.
+ * where \f$l\f$ is the size of the (sub)system, and \f$\lambda_{i}\f$ are
+ * the eigenvalues of the reduced density matrix \f$\rho_{l}\f$.
  *
  * Plot the entanglement entropy and analyze your results. A detailed
  * explanation of the behaviour of the entanglement entropy is found in
  * <a href="http://prl.aps.org/abstract/PRL/v96/i10/e100603">Phys. Rev. Lett. 96,
  * 100603 (2006)</a>
- *
- * \section wfTrans Optimizing the code: the wavefunction transformation
- *
- * One of the first optimizations that one can implement in the code is
- * what is called the wavefunction transformation. It consists in using
- * the wavefunction resulting from the previous DMRG step as the initial
- * wavefunction in the Lanczos algorithm.
- * <a href="http://en.wikipedia.org/wiki/Lanczos_algorithm">The
- * Lanczos algorithm</a> uses an iterative procedure to find the
- * ground state of the system and converges iff there is a
- * non-zero overlap between the initial wavefunction and the real
- * ground state. The biggest this overlap is, the less iterations
- * are needed to converge to the ground state. Usually one takes a random
- * wavefunction as the initial wavefunction for Lanczos, but in DMRG one
- * can get a pretty good guess of the ground state for a DMRG step using
- * the ground state for the previous DMRG step. 
- *
- * Implement the wavefunction transformation by changing the initial
- * wavefunction that is passed to the diagonalizeWithLanczos() function.
- * Note that there is a change of basis when you do an new step both for
- * the basis of the system (using the transformation_matrix), and one for
- * the enviroment (using the transformation_matrix from the previous sweep). 
- * (Therefore you need to save the transformation matrices also.) 
- *
- * The wavefunction transformation is discussed for the first time in 
  *
  * \section ising Ising model in a transverse field 
  *
@@ -168,7 +143,7 @@
  * where \f$\vec{S}\f$ are the spin operators, \f$J<0\f$ is the
  * ferromagnetic coupling between neighboring spins, and \f$\Gamma\f$ is a
  * magnetic field. This model is important in condensed matter physics as
- * the simplest model having a quantum phase transition (QPT): at
+ * is the simplest model having a quantum phase transition (QPT): at
  * \f$h_{c}=0.5\Gamma/J\f$ the ground state of the system changes from a
  * ferromagnetic to a paramagnetic phase.
  *
@@ -192,3 +167,28 @@
  * Roger Melko, Ivan Gonzalez, Ann Kallin, and Kevin Resch
  *
  */
+ //* \section wfTrans Optimizing the code: the wavefunction transformation
+ //*
+ //* One of the first optimizations that one can implement in the code is
+ //* what is called the wavefunction transformation. It consists in using
+ //* the wavefunction resulting from the previous DMRG step as the initial
+ //* wavefunction in the Lanczos algorithm.
+ //* <a href="http://en.wikipedia.org/wiki/Lanczos_algorithm">The
+ //* Lanczos algorithm</a> uses an iterative procedure to find the
+ //* ground state of the system and converges iff there is a
+ //* non-zero overlap between the initial wavefunction and the real
+ //* ground state. The biggest this overlap is, the less iterations
+ //* are needed to converge to the ground state. Usually one takes a random
+ //* wavefunction as the initial wavefunction for Lanczos, but in DMRG one
+ //* can get a pretty good guess of the ground state for a DMRG step using
+ //* the ground state for the previous DMRG step. 
+ //*
+ //* Implement the wavefunction transformation by changing the initial
+ //* wavefunction that is passed to the diagonalizeWithLanczos() function.
+ //* Note that there is a change of basis when you do an new step both for
+ //* the basis of the system (using the transformation_matrix), and one for
+ //* the enviroment (using the transformation_matrix from the previous sweep). 
+ //* (Therefore you need to save the transformation matrices also.) 
+ //*
+ //* The wavefunction transformation is discussed for the first time in 
+ //*

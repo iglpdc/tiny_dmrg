@@ -35,9 +35,9 @@ int main()
     int m;
     std::cout<<"Enter the number states to keep: ";
     std::cin>>m;
-    std::cout<<"Enter the chain length: ";
+    std::cout<<"Enter the number of sites in the chain: ";
     std::cin>>numberOfSites;
-    std::cout<<"Enter the number of finite-system sweeps : ";
+    std::cout<<"Enter the number of FSA sweeps : ";
     std::cin>>numberOfHalfSweeps;
 
     BLOCK blkS;  //create the system block

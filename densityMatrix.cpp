@@ -19,9 +19,11 @@
 /**
  * @brief A function to transform an operator to the new (truncated) basis
  *
- * @param operator a matrix with the operator in the old basis
- * @param transf_matrix a matrix transforming the old basis to the new 
+ * @param op matrix with the operator in the old basis
+ * @param transformation_matrix a matrix transforming the old basis to the new 
  * (truncated) one 
+ * @param transposed_transformation_matrix the transpose of the
+ * transformation matrix
  *
  * @return a matrix with the transformed operator
  *
@@ -86,33 +88,24 @@ blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi)
  * matrix. Performs a Householder reduction to tridiagonal form, then 
  * diagonalizes exactly this matrix. Takes input as Blitz++ arrays 
  *
- * checks if the DM is square (but not if it's symmetric)
- * checks that mm=<nn
- * assures that the sum of the DM eigenvalues is 1.0
+ * Checks if the DM is square (but not if it's symmetric), and that
+ * mm=<nn. Assures that the sum of the DM eigenvalues is 1.0
  *
  */
 blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>& 
-	density_matrix, const int mm)
+	density_matrix, int m)
 {
     if (density_matrix.cols()!=density_matrix.rows())
 	throw dmrg::Exception("reduced DM is not square");
     
-    const int nn=density_matrix.rows();
+    const int n=density_matrix.rows();
 
-    if (mm>nn)
+    if (m>n)
 	throw dmrg::Exception("Cannot keep more states than size of DM");
 
-    blitz::Array<double,1> e(nn);
-    blitz::Array<double,1> density_matrix_eigenvalues(nn); 
+    blitz::Array<double,1> density_matrix_eigenvalues(n); 
 
-    // reduce symmetric matrix to a tridiagonal form (Householder reduct.)
-    tred3(density_matrix, density_matrix_eigenvalues, e, nn);
-
-    // diagonalizes a tridiagonal matrix
-    int rtn = tqli2(density_matrix_eigenvalues, e, nn, density_matrix, 1);
-
-    // now density_matrix(j,i) is the eigenvector corresponding to
-    // density_matrix_eigenvalues[i]
+    diagonalizeDensityMatrix(density_matrix, density_matrix_eigenvalues);
 
     // check that the sum of the eigenvalues is close to 1.0
     if (fabs(1.0-sum(density_matrix_eigenvalues)) > 0.00001)
@@ -129,18 +122,17 @@ blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>&
     // define the truncation matrix formed by the eigenvector corresponding 
     // to the largest eigevalues
 
-    blitz::Array<double,2> truncated_density_matrix(mm, nn); 
+    blitz::Array<double,2> truncated_density_matrix(m, n); 
 
-    for (int  kk=0; kk<mm; kk++)
+    for (int  kk=0; kk<m; kk++)
     {
-	for (int i=0; i<nn; i++)
+	for (int i=0; i<n; i++)
 	{
-	    truncated_density_matrix(kk,i) = density_matrix(i,indexes(nn-1-kk));   
+	    truncated_density_matrix(kk,i) = density_matrix(i,indexes(n-1-kk));   
 	}
     }
     return truncated_density_matrix; 
 }
-
 /** 
  * @brief A function to order the reduced density matrix eigenvalues
  *
@@ -151,11 +143,11 @@ blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>&
  * @param density_matrix_eigenvalues the (reduced) density matrix
  * eigenvalues
  *
- * @result an array with the permutaion of the indexes corresponding to
+ * @result an array with the permutation of the indexes corresponding to
  * ordering the eigenvalues in decreasing order. 
  *
- * E.g. if density_matrix_eigenvalues={ 0.15, 0.8, 0.05 } returns
- * result= {1,0,2}
+ * E.g. if density_matrix_eigenvalues={ 0.15, 0.8, 0.05 }, this function returns
+ * {1,0,2}
  *
  */
 blitz::Array<int,1> orderDensityMatrixEigenvalues(
@@ -185,11 +177,35 @@ blitz::Array<int,1> orderDensityMatrixEigenvalues(
 	//density_matrix_eigenvalues(i+1)=a;
 	result(i+1)=b;
     }
-
-    //std::cout<<"density_matrix_eigenvalues\n"<<density_matrix_eigenvalues;
-    //std::cout<<"\n result\n"<<result;
     return result;
 }
+/**
+ * @brief A function to diagonalize the reduced density matrix
+ *
+ * @param density_matrix a matrix with the reduced density matrix
+ * @param density_matrix_eigenvalues an array with the reduced density
+ * matrix eigenvalues
+ * 
+ * On entrace to the function, density_matrix is the reduced density
+ * matrix, and density_matrix_eigenvalues can be garbage.
+ * On return, density_matrix(j,i) is the eigenvector corresponding to 
+ * density_matrix_eigenvalues(i). To diagonalize the density matrix, which
+ * is symmetric, you first reduce it to a tridiagonal form using
+ * Householder reduction, and then diagonalize this tridiagonal matrix. 
+ */
+void diagonalizeDensityMatrix(blitz::Array<double,2>& 
+	density_matrix, blitz::Array<double,1>& density_matrix_eigenvalues)
+{
+    const int n=density_matrix.rows();
+    // temporary array
+    blitz::Array<double,1> e(n);
+
+    // reduce symmetric matrix to a tridiagonal form (Householder reduct.)
+    tred3(density_matrix, density_matrix_eigenvalues, e, n);
+
+    // diagonalizes a tridiagonal matrix
+    int rtn = tqli2(density_matrix_eigenvalues, e, n, density_matrix, 1);
+} 
 /**
  * @brief A function to calculate the truncation error
  *

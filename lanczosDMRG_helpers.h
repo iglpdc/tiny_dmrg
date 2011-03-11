@@ -63,7 +63,7 @@ inline void randomize(blitz::Array<double,1>& V)
  *
  * Takes a wavefunction and normalizes it
  */
-inline void Normalize(blitz::Array<double,1>& V) 
+inline void normalize(blitz::Array<double,1>& V) 
 {
   double norm = calculateNorm(V);
   V/=norm;

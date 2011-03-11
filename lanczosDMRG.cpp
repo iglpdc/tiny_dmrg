@@ -5,7 +5,7 @@
  *
  * @author Roger Melko 
  * @author Ivan Gonzalez
- * @date $Date$
+ * $Date$
  *
  * $Revision$ 
  */
@@ -22,9 +22,20 @@ BZ_USING_NAMESPACE(blitz)
 
 /**
  * @brief A function to reduce the Hamiltonian to a tri-diagonal form  
- * 
+ *
+ * @param Ham a matrix with the Hamiltonian
+ * @param Psi an array with the ground state wavefunction
+ * @param En a pointer to a double with the ground state energy
+ *
+ * @return a int with a code for good/bad termination
+ *
+ * Given a Hamiltonian, this function gives you its ground state
+ * wavefunction (which is
+ * stored in the parameter Psi), and an ground state energy (which is
+ * stored in the parameter En. When you call the funnction Psi
+ * contains garbage, on return it stores the ground state wavefunction.
  */
-int LanczosED(blitz::Array<double,2>& Ham, blitz::Array<double,1>& Psi, double *En, const int N)
+int diagonalizeWithLanczos(blitz::Array<double,2>& Ham, blitz::Array<double,1>& Psi, double *En)
 {
   int MAXiter, EViter;
   int min;
@@ -33,6 +44,8 @@ int LanczosED(blitz::Array<double,2>& Ham, blitz::Array<double,1>& Psi, double *
 
   int STARTIT=3; //iteration which diagonz. begins
   int LIT=100;   //max number of Lanczos iterations
+
+  const int N=Psi.size();
   
   //Matrices
   blitz::Array<double,1> V0(N);  
@@ -56,7 +69,7 @@ int LanczosED(blitz::Array<double,2>& Ham, blitz::Array<double,1>& Psi, double *
   // initialize with randon numbers are normalize
   //
   randomize(Vorig);
-  Normalize(Vorig);  
+  normalize(Vorig);  
 
   for (EViter = 0; EViter < 2; EViter++) {//0=get E0 converge, 1=get eigenvec
 
@@ -174,7 +187,7 @@ int LanczosED(blitz::Array<double,2>& Ham, blitz::Array<double,1>& Psi, double *
     
   }//repeat (EViter) to transfrom eigenvalues H basis
   
-  Normalize(Psi);
+  normalize(Psi);
 
 //   cout<<Psi<<" Psi \n";
 
@@ -190,7 +203,6 @@ int LanczosED(blitz::Array<double,2>& Ham, blitz::Array<double,1>& Psi, double *
  *
  * @param Hm is a 4-index tensor with the Hamiltonian
  * @param Ed is a matrix with the result of the calculation
- * @param nn is ??
  *
  * Returns the ground state eigenvalue and eigenvector using the 
  * Lanczos function
@@ -209,7 +221,7 @@ double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed)
     Array<double,1> Psi(nn);  //return eigenvector
     double En;                //return eigenvalue
 
-    int lrt = LanczosED(Ham2d, Psi, &En, nn); 
+    int lrt = diagonalizeWithLanczos(Ham2d, Psi, &En); 
     if (lrt == 1) 
       throw dmrg::Exception("Lanczos early term error");
 

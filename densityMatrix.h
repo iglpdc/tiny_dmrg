@@ -24,6 +24,9 @@ blitz::Array<double,2> calculateReducedDensityMatrix(blitz::Array<double,2> psi)
 blitz::Array<double,2> truncateReducedDM(blitz::Array<double,2>& density_matrix, 
 	const int mm);
 
+void diagonalizeDensityMatrix(blitz::Array<double,2>& 
+	density_matrix, blitz::Array<double,1>& density_matrix_eigenvalues);
+
 blitz::Array<int,1> orderDensityMatrixEigenvalues(
 	blitz::Array<double,1>& density_matrix_eigenvalues);
 

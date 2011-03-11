@@ -29,6 +29,12 @@ namespace dmrg{
 
 	public:
 
+	    /**
+	     * brief Constructor
+	     *
+	     * @param whatString a string with the message the exception
+	     * will print out if raised.
+	     */
 	    Exception(const std::string& whatString) 
 		: std::logic_error(whatString) {}
     };

@@ -35,7 +35,7 @@ int main()
     int m;
     std::cout<<"Enter the number states to keep: ";
     std::cin>>m;
-    std::cout<<"Enter the chain lengthl: ";
+    std::cout<<"Enter the chain length: ";
     std::cin>>numberOfSites;
     std::cout<<"Enter the number of finite-system sweeps : ";
     std::cin>>numberOfHalfSweeps;

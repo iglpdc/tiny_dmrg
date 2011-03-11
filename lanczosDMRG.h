@@ -15,6 +15,5 @@
 #include"blitz/array.h"
  
 double calculateGroundState(blitz::Array<double,4>&, blitz::Array<double,2>&);
-int LanczosED(blitz::Array<double,2>&, blitz::Array<double,1>&, double *, 
-	const int);
+int diagonalizeWithLanczos(blitz::Array<double,2>&, blitz::Array<double,1>&, double *);
 #endif // LANCZOS_DMRG_H

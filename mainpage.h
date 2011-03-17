@@ -181,6 +181,14 @@
  * \endcode 
  * and use the function calculateEntanglementEntropy() to print the result
  *
+ * The file exercises/transverseFieldIsing.cpp contains an implementation of
+ * the Ising model. To run it, just copy the file to the main directory
+ * and recompile using the new makefile:
+ *
+ * \code
+ * $ make -f makefile_ising
+ * \endcode
+ *
  // @cond NOT_SHOWN
  * \section wfTrans Optimizing the code: the wavefunction transformation
  *

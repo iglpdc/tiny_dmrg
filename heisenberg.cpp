@@ -79,33 +79,36 @@ int main()
     system.blockH = reduceM2M2(TSR);
 
     TSR = sigma_z(i,k)*I2(j,l);
-    blitz::Array<double,2> SzAB = reduceM2M2(TSR);
+    blitz::Array<double,2> S_z = reduceM2M2(TSR);
 
     TSR = sigma_m(i,k)*I2(j,l);
-    blitz::Array<double,2> SmAB = reduceM2M2(TSR);
+    blitz::Array<double,2> S_m = reduceM2M2(TSR);
 
     TSR = sigma_p(i,k)*I2(j,l);
-    blitz::Array<double,2> SpAB = reduceM2M2(TSR);
+    blitz::Array<double,2> S_p = reduceM2M2(TSR);
     // done building the Hamiltonian
 
     /**
      * Infinite system algorithm: build the Hamiltonian from 2 to N-sites
      */
-    int statesToKeep=2;   //start with a 2^2=4 state system
-    int sitesInSystem=2;     //# sites (SYSTEM)
+    int statesToKeep=2;      //start with a 2^2=4 state system
+    int sitesInSystem=2;     //# sites in the system block
 
     blitz::Array<double,2> I2st=createIdentityMatrix(4);
 
     while (sitesInSystem <= (numberOfSites)/2 ) 
     {
+	// build the hamiltonian as a four-index tensor
         Habcd = system.blockH(i,k)*I2st(j,l)+ 
             I2st(i,k)*system.blockH(j,l)+
-            SzAB(i,k)*SzAB(j,l)+0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
+            S_z(i,k)*S_z(j,l)+0.5*S_p(i,k)*S_m(j,l)+0.5*S_m(i,k)*S_p(j,l);
 
+	// calculate the ground state energy 
         double groundStateEnergy=calculateGroundState(Habcd, Psi);
 
         printGroundStateEnergy(sitesInSystem, sitesInSystem, groundStateEnergy);
 
+	// increase the number of states if you are not at m yet
         statesToKeep= (2*statesToKeep<=m)? 2*statesToKeep : m;
 
         // calculate the reduced density matrix and truncate 
@@ -122,9 +125,9 @@ int main()
         SpB.resize(statesToKeep, statesToKeep);
         SmB.resize(statesToKeep, statesToKeep);
         HAp=transformOperator(system.blockH, OT, OO);
-        SzB=transformOperator(SzAB, OT, OO);
-        SpB=transformOperator(SpAB, OT, OO);
-        SmB=transformOperator(SmAB, OT, OO);
+        SzB=transformOperator(S_z, OT, OO);
+        SpB=transformOperator(S_p, OT, OO);
+        SmB=transformOperator(S_m, OT, OO);
 
         //Hamiltonian for next iteration
         TSR.resize(statesToKeep,2,statesToKeep,2);
@@ -134,32 +137,31 @@ int main()
         system.blockH.resize(2*statesToKeep,2*statesToKeep);            
         system.blockH = reduceM2M2(TSR);
 
-	int statesToKeepNext= (2*statesToKeep<=m)? 4*statesToKeep : 2*m;
-
 	//redefine identity matrix
+	int statesToKeepNext= (2*statesToKeep<=m)? 4*statesToKeep : 2*m;
 	I2st.resize(statesToKeepNext, statesToKeepNext);    
 	I2st = createIdentityMatrix(statesToKeepNext);
 
-	//Operators for next iteration
-	SzAB.resize(2*statesToKeep,2*statesToKeep);  
+	//redefine the operators for next iteration
+	S_z.resize(2*statesToKeep,2*statesToKeep);  
 	TSR = I2st(i,k)*sigma_z(j,l);
-	SzAB = reduceM2M2(TSR);
+	S_z = reduceM2M2(TSR);
 
-	SpAB.resize(2*statesToKeep,2*statesToKeep);
+	S_p.resize(2*statesToKeep,2*statesToKeep);
 	TSR = I2st(i,k)*sigma_p(j,l);
-	SpAB = reduceM2M2(TSR);
+	S_p = reduceM2M2(TSR);
 
-	SmAB.resize(2*statesToKeep,2*statesToKeep);
+	S_m.resize(2*statesToKeep,2*statesToKeep);
 	TSR = I2st(i,k)*sigma_m(j,l);
-	SmAB = reduceM2M2(TSR);        
+	S_m = reduceM2M2(TSR);        
 
-	Habcd.resize(2*statesToKeep,2*statesToKeep,2*statesToKeep,2*statesToKeep);   //re-prepare superblock matrix
-	Psi.resize(2*statesToKeep,2*statesToKeep);             //GS wavefunction
+	// re-prepare superblock matrix, wavefunction and reduced DM
+	Habcd.resize(2*statesToKeep,2*statesToKeep,2*statesToKeep,2*statesToKeep);   
+	Psi.resize(2*statesToKeep,2*statesToKeep);             
 	reducedDM.resize(2*statesToKeep,2*statesToKeep);
-	
-        sitesInSystem++;
 
-        system.size = sitesInSystem;  //this is the size of the system block
+	// make the system one site larger and save it
+        system.size = ++sitesInSystem;  
         system.ISAwrite(sitesInSystem);
 
     }//end INFINITE SYSTEM ALGORITHM 
@@ -189,8 +191,8 @@ int main()
                 // build the hamiltonian as a four-index tensor
                 Habcd = environ.blockH(i,k)*I2st(j,l)+
 		    I2st(i,k)*system.blockH(j,l)+
-                    SzAB(i,k)*SzAB(j,l)+
-                    0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
+                    S_z(i,k)*S_z(j,l)+
+                    0.5*S_p(i,k)*S_m(j,l)+0.5*S_m(i,k)*S_p(j,l);
 
                 // calculate the ground state energy 
                 double groundStateEnergy=calculateGroundState(Habcd, Psi);
@@ -210,9 +212,9 @@ int main()
 
                 // transform the operators to new basis
                 HAp=transformOperator(system.blockH, OT, OO);
-                SzB=transformOperator(SzAB, OT, OO);
-                SpB=transformOperator(SpAB, OT, OO);
-                SmB=transformOperator(SmAB, OT, OO);
+                SzB=transformOperator(S_z, OT, OO);
+                SpB=transformOperator(S_p, OT, OO);
+                SmB=transformOperator(S_m, OT, OO);
 
                 // add spin to the system block only
                 TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*sigma_z(j,l)+ 

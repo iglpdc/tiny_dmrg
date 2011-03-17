@@ -2,8 +2,11 @@
  * @file entropies.h
  * @brief A file with a couple of function to calculate the entanglement
  * entropies 
- * @author Ivan Gonzalez and Roger Melko
- * @date 2007-10-29
+ * @author Roger Melko 
+ * @author Ivan Gonzalez
+ * @date $Date$
+ *
+ * $Revision$ 
  *
  * This is an implementation to give out as the solution of the second
  * exercise in the DMRGloo school.
@@ -11,10 +14,10 @@
  * All the functions in this file are inlined. So you can just include
  * them in the original densityMatrix.cpp file. Note that the functions ot
  * calculate the entropies take the reduced denisty matrix eigenvalues,
- * which in the current implemenation are only avaliable inside the
- * truncateReducedDM function.
+ * which in the current implementation are only avaliable inside the
+ * truncateReducedDM() function.
  *
- * @see truncatedReducedDM
+ * @see truncatedReducedDM()
  */
 #ifndef ENTROPIES_H
 #define ENTROPIES_H
@@ -29,16 +32,17 @@
  *
  * The Von Neumann entanglement entropy is defined as:
  * 
- * \f$S_{vN}(A)\equiv-tr(\rho_{A}\ln\rho_{A}}
+ * \f$S_{vN}(A)\equiv-tr(\rho_{A}\ln\rho_{A})\f$
  *
  * where \f$\rho_{A}\f$ is the reduce density matrix of part \f$A\f$. When
- * \f$\rho_{A}\f$ is diagonalized (\f$\lambda_{i}\f$ being its eigenvalues
+ * \f$\rho_{A}\f$ is diagonalized (\f$\lambda_{i}\f$ being its
+ * eigenvalues),
  * you have:
  *
- * \f$S_{vN}(A)=-\sum_{i}\lambda_{i}\ln{\lambda_{i}}\f$
+ * \f$S_{vN}(A)=-\sum_{i}\lambda_{i}\ln\lambda_{i}\f$
  *
  * This function assumes that the eigenvalues are OK, i.e.
- * \f$\lambda_{i}\in[0,1],\quad\each i, \qquad \sum_{i}\lambda_{i}\f$
+ * \f$\lambda_{i}\in[0,1],\, \forall i, \quad \sum_{i}\lambda_{i}=1\f$
  */
 inline double calculateEntanglementEntropy(const blitz::Array<double,1>& density_matrix_eigenvalues)
 {
@@ -57,16 +61,18 @@ inline double calculateEntanglementEntropy(const blitz::Array<double,1>& density
  *
  * The Renyi entropy of order N is defined as:
  * 
- * \f$S_{n}(A)\equiv \frac{1}{1-n}\ln \[tr(\rho^{n}_{A})]\f$
+ * \f$S_{n}(A)\equiv \frac{1}{1-n}\ln [tr(\rho^{n}_{A})]\f$
  *
  * where \f$\rho_{A}\f$ is the reduce density matrix of part \f$A\f$. When
- * \f$\rho_{A}\f$ is diagonalized (\f$\lambda_{i}\f$ being its eigenvalues
+ * \f$\rho_{A}\f$ is diagonalized (\f$\lambda_{i}\f$ being its
+ * eigenvalues),
  * you have:
  *
  * \f$S_{n}(A)=\frac{1}{1-n}\ln (\sum_{i}\lambda^{n}_{i}})\f$
  *
  * This function assumes that the eigenvalues are OK, i.e.
- * \f$\lambda_{i}\in[0,1],\quad\each i, \qquad \sum_{i}\lambda_{i}\f$
+ * \f$\lambda_{i}\in[0,1],\, \forall i, \quad \sum_{i}\lambda_{i}=1\f$
+
  */
 template<int N>
 inline double calculateRenyiEntropy(const blitz::Array<double,1>& density_matrix_eigenvalues)

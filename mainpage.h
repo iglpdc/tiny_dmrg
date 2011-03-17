@@ -96,6 +96,9 @@
  * number of FSA sweeps: 5 
  * \endcode
  *
+ * \page people People
+ *
+ * Roger Melko, Ivan Gonzalez, Ann Kallin, and Kevin Resch
  *
  * \page exercises Exercises
  * 
@@ -113,7 +116,6 @@
  * different parameters and see the differences. </ul> 
  *
  * The exact result (Bethe Ansatz) for the infinite chain is \f$E_{0}=\frac{1}{4}-\ln 2\f$.
- *
  *
  *
  * \section entanglement Calculation of the entanglement entropy
@@ -162,12 +164,18 @@
  * see something at the QPT?
  * </ul>
  *
- * \page people People
+ * \section solutions Solution to the exercises
  *
- * Roger Melko, Ivan Gonzalez, Ann Kallin, and Kevin Resch
+ * The file exercises/entropies.h contains an implementation for the
+ * functions needed to calculate to the entropies in the second exercise.
+ * To use it, just include it as a header file in densityMatrix.cpp:
  *
+ * \code 
+ * #include "exercises/entropies.h"
+ * \endcode 
+ * and use the function calculateEntanglementEntropy() to print the result
  *
- /// @cond NOT_SHOWN
+ // @cond NOT_SHOWN
  * \section wfTrans Optimizing the code: the wavefunction transformation
  *
  * One of the first optimizations that one can implement in the code is
@@ -193,5 +201,5 @@
  *
  * The wavefunction transformation is discussed for the first time in 
  *
- /// @endcond NOT_SHOWN
+ // @endcond NOT_SHOWN
  */

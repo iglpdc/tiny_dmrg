@@ -91,7 +91,7 @@ int main()
     /**
      * Infinite system algorithm: build the Hamiltonian from 2 to N-sites
      */
-    int statesToKeepIFA=2;   //start with a 2^2=4 state system
+    int statesToKeep=2;   //start with a 2^2=4 state system
     int sitesInSystem=2;     //# sites (SYSTEM)
 
     blitz::Array<double,2> I2st=createIdentityMatrix(4);
@@ -106,56 +106,56 @@ int main()
 
         printGroundStateEnergy(sitesInSystem, sitesInSystem, groundStateEnergy);
 
-        statesToKeepIFA= (2*statesToKeepIFA<=m)? 2*statesToKeepIFA : m;
+        statesToKeep= (2*statesToKeep<=m)? 2*statesToKeep : m;
 
         // calculate the reduced density matrix and truncate 
         reducedDM=calculateReducedDensityMatrix(Psi);
 
-        OO.resize(statesToKeepIFA,reducedDM.rows()); //resize transf. matrix
-        OT.resize(reducedDM.rows(),statesToKeepIFA); // and its inverse
-        OO=truncateReducedDM(reducedDM, statesToKeepIFA); //get transf. matrix 
+        OO.resize(statesToKeep,reducedDM.rows()); //resize transf. matrix
+        OT.resize(reducedDM.rows(),statesToKeep); // and its inverse
+        OO=truncateReducedDM(reducedDM, statesToKeep); //get transf. matrix 
         OT=OO.transpose(blitz::secondDim, blitz::firstDim); //and its inverse
 
         //transform the operators to new basis
-        HAp.resize(statesToKeepIFA, statesToKeepIFA);
-        SzB.resize(statesToKeepIFA, statesToKeepIFA);
-        SpB.resize(statesToKeepIFA, statesToKeepIFA);
-        SmB.resize(statesToKeepIFA, statesToKeepIFA);
+        HAp.resize(statesToKeep, statesToKeep);
+        SzB.resize(statesToKeep, statesToKeep);
+        SpB.resize(statesToKeep, statesToKeep);
+        SmB.resize(statesToKeep, statesToKeep);
         HAp=transformOperator(system.blockH, OT, OO);
         SzB=transformOperator(SzAB, OT, OO);
         SpB=transformOperator(SpAB, OT, OO);
         SmB=transformOperator(SmAB, OT, OO);
 
         //Hamiltonian for next iteration
-        TSR.resize(statesToKeepIFA,2,statesToKeepIFA,2);
+        TSR.resize(statesToKeep,2,statesToKeep,2);
         TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*sigma_z(j,l)+ 
             0.5*SpB(i,k)*sigma_m(j,l) + 0.5*SmB(i,k)*sigma_p(j,l) ;
 
-        system.blockH.resize(2*statesToKeepIFA,2*statesToKeepIFA);            
+        system.blockH.resize(2*statesToKeep,2*statesToKeep);            
         system.blockH = reduceM2M2(TSR);
 
-	int statesToKeep= (2*statesToKeepIFA<=m)? 4*statesToKeepIFA : 2*m;
+	int statesToKeepNext= (2*statesToKeep<=m)? 4*statesToKeep : 2*m;
 
 	//redefine identity matrix
-	I2st.resize(statesToKeep, statesToKeep);    
-	I2st = createIdentityMatrix(statesToKeep);
+	I2st.resize(statesToKeepNext, statesToKeepNext);    
+	I2st = createIdentityMatrix(statesToKeepNext);
 
 	//Operators for next iteration
-	SzAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);  
+	SzAB.resize(2*statesToKeep,2*statesToKeep);  
 	TSR = I2st(i,k)*sigma_z(j,l);
 	SzAB = reduceM2M2(TSR);
 
-	SpAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);
+	SpAB.resize(2*statesToKeep,2*statesToKeep);
 	TSR = I2st(i,k)*sigma_p(j,l);
 	SpAB = reduceM2M2(TSR);
 
-	SmAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);
+	SmAB.resize(2*statesToKeep,2*statesToKeep);
 	TSR = I2st(i,k)*sigma_m(j,l);
 	SmAB = reduceM2M2(TSR);        
 
-	Habcd.resize(2*statesToKeepIFA,2*statesToKeepIFA,2*statesToKeepIFA,2*statesToKeepIFA);   //re-prepare superblock matrix
-	Psi.resize(2*statesToKeepIFA,2*statesToKeepIFA);             //GS wavefunction
-	reducedDM.resize(2*statesToKeepIFA,2*statesToKeepIFA);
+	Habcd.resize(2*statesToKeep,2*statesToKeep,2*statesToKeep,2*statesToKeep);   //re-prepare superblock matrix
+	Psi.resize(2*statesToKeep,2*statesToKeep);             //GS wavefunction
+	reducedDM.resize(2*statesToKeep,2*statesToKeep);
 	
         sitesInSystem++;
 

@@ -45,7 +45,7 @@ int main()
     Block environ;  //create the environment block
 
     //Below we declare the Blitz++ matrices used by the program
-    blitz::Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
+    blitz::Array<double,4> TSR(2,2,2,2);   //tensor product for Hab hamiltonian
 
     blitz::Array<double,4> Habcd(4,4,4,4); // superblock hamiltonian
     blitz::Array<double,2> Psi(4,4);       // ground state wavefunction
@@ -53,10 +53,10 @@ int main()
     blitz::Array<double,2> OO(m,4);        // the truncation matrix
     blitz::Array<double,2> OT(4,m);        // transposed truncation matrix
 
-    blitz::Array<double,2> HAp;   //A' block hamiltonian
-    blitz::Array<double,2> SzB;   //Sz(left) operator  
-    blitz::Array<double,2> SmB;   //Sm(left) operator
-    blitz::Array<double,2> SpB;   //Sp(left) operator
+    blitz::Array<double,2> blockH_p;       //block hamiltonian after transform.
+    blitz::Array<double,2> S_z_p;          //S_z operator after transformation  
+    blitz::Array<double,2> S_m_p;          //S_m operator after transformation
+    blitz::Array<double,2> S_p_p;          //S_p operator after transformation
 
     // create the pauli matrices and the 2x2 identity matrix
     blitz::Array<double,2> sigma_z(2,2), sigma_p(2,2), sigma_m(2,2);
@@ -120,19 +120,19 @@ int main()
         OT=OO.transpose(blitz::secondDim, blitz::firstDim); //and its inverse
 
         //transform the operators to new basis
-        HAp.resize(statesToKeep, statesToKeep);
-        SzB.resize(statesToKeep, statesToKeep);
-        SpB.resize(statesToKeep, statesToKeep);
-        SmB.resize(statesToKeep, statesToKeep);
-        HAp=transformOperator(system.blockH, OT, OO);
-        SzB=transformOperator(S_z, OT, OO);
-        SpB=transformOperator(S_p, OT, OO);
-        SmB=transformOperator(S_m, OT, OO);
+        blockH_p.resize(statesToKeep, statesToKeep);
+        S_z_p.resize(statesToKeep, statesToKeep);
+        S_p_p.resize(statesToKeep, statesToKeep);
+        S_m_p.resize(statesToKeep, statesToKeep);
+        blockH_p=transformOperator(system.blockH, OT, OO);
+        S_z_p=transformOperator(S_z, OT, OO);
+        S_p_p=transformOperator(S_p, OT, OO);
+        S_m_p=transformOperator(S_m, OT, OO);
 
         //Hamiltonian for next iteration
         TSR.resize(statesToKeep,2,statesToKeep,2);
-        TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*sigma_z(j,l)+ 
-            0.5*SpB(i,k)*sigma_m(j,l) + 0.5*SmB(i,k)*sigma_p(j,l) ;
+        TSR = blockH_p(i,k)*I2(j,l) + S_z_p(i,k)*sigma_z(j,l)+ 
+            0.5*S_p_p(i,k)*sigma_m(j,l) + 0.5*S_m_p(i,k)*sigma_p(j,l) ;
 
         system.blockH.resize(2*statesToKeep,2*statesToKeep);            
         system.blockH = reduceM2M2(TSR);
@@ -211,14 +211,14 @@ int main()
                 OT=OO.transpose(blitz::secondDim, blitz::firstDim);
 
                 // transform the operators to new basis
-                HAp=transformOperator(system.blockH, OT, OO);
-                SzB=transformOperator(S_z, OT, OO);
-                SpB=transformOperator(S_p, OT, OO);
-                SmB=transformOperator(S_m, OT, OO);
+                blockH_p=transformOperator(system.blockH, OT, OO);
+                S_z_p=transformOperator(S_z, OT, OO);
+                S_p_p=transformOperator(S_p, OT, OO);
+                S_m_p=transformOperator(S_m, OT, OO);
 
                 // add spin to the system block only
-                TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*sigma_z(j,l)+ 
-                    0.5*SpB(i,k)*sigma_m(j,l) + 0.5*SmB(i,k)*sigma_p(j,l);       
+                TSR = blockH_p(i,k)*I2(j,l) + S_z_p(i,k)*sigma_z(j,l)+ 
+                    0.5*S_p_p(i,k)*sigma_m(j,l) + 0.5*S_m_p(i,k)*sigma_p(j,l);       
                 system.blockH = reduceM2M2(TSR);
 
                 sitesInSystem++;

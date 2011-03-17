@@ -68,7 +68,7 @@ inline double calculateEntanglementEntropy(const blitz::Array<double,1>& density
  * eigenvalues),
  * you have:
  *
- * \f$S_{n}(A)=\frac{1}{1-n}\ln (\sum_{i}\lambda^{n}_{i}})\f$
+ * \f$ S_{n}(A)=\frac{1}{1-n}\ln (\sum_{i}\lambda^{n}_{i})\f$
  *
  * This function assumes that the eigenvalues are OK, i.e.
  * \f$\lambda_{i}\in[0,1],\, \forall i, \quad \sum_{i}\lambda_{i}=1\f$

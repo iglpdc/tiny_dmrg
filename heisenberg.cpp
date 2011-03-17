@@ -41,8 +41,8 @@ int main()
     std::cout<<"Enter the number of FSA sweeps : ";
     std::cin>>numberOfHalfSweeps;
 
-    Block blkS;  //create the system block
-    Block blkE;  //create the environment block
+    Block system;   //create the system block
+    Block environ;  //create the environment block
 
     //Below we declare the Blitz++ matrices used by the program
     blitz::Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
@@ -59,12 +59,12 @@ int main()
     blitz::Array<double,2> SpB;   //Sp(left) operator
 
     // create the pauli matrices and the 2x2 identity matrix
-    blitz::Array<double,2> Sz(2,2), Sp(2,2), Sm(2,2);
-    Sz = 0.5, 0,
+    blitz::Array<double,2> sigma_z(2,2), sigma_p(2,2), sigma_m(2,2);
+    sigma_z = 0.5, 0,
          0, -0.5;
-    Sp = 0, 1.0,
+    sigma_p = 0, 1.0,
          0, 0;
-    Sm = 0, 0,
+    sigma_m = 0, 0,
          1.0, 0;
     blitz::Array<double,2> I2=createIdentityMatrix(2);
 
@@ -73,17 +73,18 @@ int main()
     blitz::thirdIndex k;    blitz::fourthIndex l; 
 
     // build the Hamiltonian for two-sites only
-    TSR = Sz(i,k)*Sz(j,l)+ 0.5*Sp(i,k)*Sm(j,l) + 0.5*Sm(i,k)*Sp(j,l);
-    blkS.HAB.resize(4,4);
-    blkS.HAB = reduceM2M2(TSR);
+    TSR = sigma_z(i,k)*sigma_z(j,l)+ 0.5*sigma_p(i,k)*sigma_m(j,l) + 
+	0.5*sigma_m(i,k)*sigma_p(j,l);
+    system.blockH.resize(4,4);
+    system.blockH = reduceM2M2(TSR);
 
-    TSR = Sz(i,k)*I2(j,l);
+    TSR = sigma_z(i,k)*I2(j,l);
     blitz::Array<double,2> SzAB = reduceM2M2(TSR);
 
-    TSR = Sm(i,k)*I2(j,l);
+    TSR = sigma_m(i,k)*I2(j,l);
     blitz::Array<double,2> SmAB = reduceM2M2(TSR);
 
-    TSR = Sp(i,k)*I2(j,l);
+    TSR = sigma_p(i,k)*I2(j,l);
     blitz::Array<double,2> SpAB = reduceM2M2(TSR);
     // done building the Hamiltonian
 
@@ -97,8 +98,8 @@ int main()
 
     while (sitesInSystem <= (numberOfSites)/2 ) 
     {
-        Habcd = blkS.HAB(i,k)*I2st(j,l)+ 
-            I2st(i,k)*blkS.HAB(j,l)+
+        Habcd = system.blockH(i,k)*I2st(j,l)+ 
+            I2st(i,k)*system.blockH(j,l)+
             SzAB(i,k)*SzAB(j,l)+0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
 
         double groundStateEnergy=calculateGroundState(Habcd, Psi);
@@ -120,18 +121,18 @@ int main()
         SzB.resize(statesToKeepIFA, statesToKeepIFA);
         SpB.resize(statesToKeepIFA, statesToKeepIFA);
         SmB.resize(statesToKeepIFA, statesToKeepIFA);
-        HAp=transformOperator(blkS.HAB, OT, OO);
+        HAp=transformOperator(system.blockH, OT, OO);
         SzB=transformOperator(SzAB, OT, OO);
         SpB=transformOperator(SpAB, OT, OO);
         SmB=transformOperator(SmAB, OT, OO);
 
         //Hamiltonian for next iteration
         TSR.resize(statesToKeepIFA,2,statesToKeepIFA,2);
-        TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
-            0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
+        TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*sigma_z(j,l)+ 
+            0.5*SpB(i,k)*sigma_m(j,l) + 0.5*SmB(i,k)*sigma_p(j,l) ;
 
-        blkS.HAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);            
-        blkS.HAB = reduceM2M2(TSR);
+        system.blockH.resize(2*statesToKeepIFA,2*statesToKeepIFA);            
+        system.blockH = reduceM2M2(TSR);
 
 	int statesToKeep= (2*statesToKeepIFA<=m)? 4*statesToKeepIFA : 2*m;
 
@@ -141,15 +142,15 @@ int main()
 
 	//Operators for next iteration
 	SzAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);  
-	TSR = I2st(i,k)*Sz(j,l);
+	TSR = I2st(i,k)*sigma_z(j,l);
 	SzAB = reduceM2M2(TSR);
 
 	SpAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);
-	TSR = I2st(i,k)*Sp(j,l);
+	TSR = I2st(i,k)*sigma_p(j,l);
 	SpAB = reduceM2M2(TSR);
 
 	SmAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);
-	TSR = I2st(i,k)*Sm(j,l);
+	TSR = I2st(i,k)*sigma_m(j,l);
 	SmAB = reduceM2M2(TSR);        
 
 	Habcd.resize(2*statesToKeepIFA,2*statesToKeepIFA,2*statesToKeepIFA,2*statesToKeepIFA);   //re-prepare superblock matrix
@@ -158,8 +159,8 @@ int main()
 	
         sitesInSystem++;
 
-        blkS.size = sitesInSystem;  //this is the size of the system block
-        blkS.ISAwrite(sitesInSystem);
+        system.size = sitesInSystem;  //this is the size of the system block
+        system.ISAwrite(sitesInSystem);
 
     }//end INFINITE SYSTEM ALGORITHM 
 
@@ -174,7 +175,7 @@ int main()
 
         // start in the middle of the chain 
         int sitesInSystem = numberOfSites/2;
-        blkS.FSAread(sitesInSystem,1);
+        system.FSAread(sitesInSystem,1);
 
         for (int halfSweep=0; halfSweep<numberOfHalfSweeps; halfSweep++)
         {
@@ -183,10 +184,11 @@ int main()
                 int sitesInEnviroment = numberOfSites - sitesInSystem;
 
                 // read the environment block from disk
-                blkE.FSAread(sitesInEnviroment,halfSweep);
+                environ.FSAread(sitesInEnviroment,halfSweep);
 
                 // build the hamiltonian as a four-index tensor
-                Habcd = blkE.HAB(i,k)*I2st(j,l)+I2st(i,k)*blkS.HAB(j,l)+
+                Habcd = environ.blockH(i,k)*I2st(j,l)+
+		    I2st(i,k)*system.blockH(j,l)+
                     SzAB(i,k)*SzAB(j,l)+
                     0.5*SpAB(i,k)*SmAB(j,l)+0.5*SmAB(i,k)*SpAB(j,l);
 
@@ -207,24 +209,24 @@ int main()
                 OT=OO.transpose(blitz::secondDim, blitz::firstDim);
 
                 // transform the operators to new basis
-                HAp=transformOperator(blkS.HAB, OT, OO);
+                HAp=transformOperator(system.blockH, OT, OO);
                 SzB=transformOperator(SzAB, OT, OO);
                 SpB=transformOperator(SpAB, OT, OO);
                 SmB=transformOperator(SmAB, OT, OO);
 
                 // add spin to the system block only
-                TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
-                    0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l);       
-                blkS.HAB = reduceM2M2(TSR);
+                TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*sigma_z(j,l)+ 
+                    0.5*SpB(i,k)*sigma_m(j,l) + 0.5*SmB(i,k)*sigma_p(j,l);       
+                system.blockH = reduceM2M2(TSR);
 
                 sitesInSystem++;
 
-                blkS.size = sitesInSystem;
-                blkS.FSAwrite(sitesInSystem,halfSweep);
+                system.size = sitesInSystem;
+                system.FSAwrite(sitesInSystem,halfSweep);
             }// while
 
             sitesInSystem = minEnviromentSize;
-            blkS.FSAread(sitesInSystem,halfSweep);
+            system.FSAread(sitesInSystem,halfSweep);
 
         }// for
     }  // end of the finite size algorithm

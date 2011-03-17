@@ -23,7 +23,7 @@ class Block {
 		/// number of sites in the block
 		int size;    
 		/// A' plus right spin Hamiltonian: Blitz++ array
-		blitz::Array<double,2> HAB;   
+		blitz::Array<double,2> blockH;   
 
 		Block();
 		void ISAwrite(const int sites);
@@ -74,7 +74,7 @@ void Block::Write() {
 /// opens the output file and writes the Blitz++ array
   std::ofstream fout;  
   fout.open(fname,std::ios::out);
-  fout <<std::setprecision(12)<<HAB ;
+  fout <<std::setprecision(12)<<blockH ;
   fout.close();
 } //Write
 
@@ -82,7 +82,7 @@ void Block::Read() {
 /// opens the input file and reads the Blitz++ array
   std::ifstream fin;  
   fin.open(fname,std::ios::in);
-  fin >> HAB ;
+  fin >> blockH ;
   fin.close();
 }//Read
 

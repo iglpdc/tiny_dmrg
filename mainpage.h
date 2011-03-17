@@ -115,7 +115,13 @@
  * the Bethe Ansatz.  <li> Run the code with
  * different parameters and see the differences. </ul> 
  *
- * The exact result (Bethe Ansatz) for the infinite chain is \f$E_{0}=\frac{1}{4}-\ln 2\f$.
+ * The exact results are (energy per site):
+ *
+ * <ul> 
+ * <li> \f$E_(L=16)=-0.43193571598444\f$
+ * <li> \f$E_(L=100)=-0.441277398932949\f$
+ * <li> \f$E_{L\to\infty}=\frac{1}{4}-\ln 2\f$
+ * </ul>
  *
  *
  * \section entanglement Calculation of the entanglement entropy

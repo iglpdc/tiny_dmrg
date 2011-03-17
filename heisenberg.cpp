@@ -13,7 +13,8 @@
  *  \f$H= \sum_{ij} (S^x_i S^x_j + S^y_i S^y_j +  S^z_i S^z_j ) \f$
  *
  * <ul> 
- *  <li> Begins with the "symmetric" infinite system algorithm to build up the chain
+ *  <li> Begins with the "symmetric" infinite system algorithm to build 
+ *  up the chain
  *  <li> After this, a number of finite system algorithm sweeps are performed
  *  <li> The exact diagonalization performed with Lanczos
  *  <li> The output is the energy as a function of sweep
@@ -40,17 +41,17 @@ int main()
     std::cout<<"Enter the number of FSA sweeps : ";
     std::cin>>numberOfHalfSweeps;
 
-    BLOCK blkS;  //create the system block
-    BLOCK blkE;  //create the environment block
+    Block blkS;  //create the system block
+    Block blkE;  //create the environment block
 
     //Below we declare the Blitz++ matrices used by the program
     blitz::Array<double,4> TSR(2,2,2,2);  //tensor product for Hab hamiltonian
 
     blitz::Array<double,4> Habcd(4,4,4,4); // superblock hamiltonian
     blitz::Array<double,2> Psi(4,4);       // ground state wavefunction
-    blitz::Array<double,2> rhoTSR(4,4);    // reduced density matrix
+    blitz::Array<double,2> reducedDM(4,4); // reduced density matrix
     blitz::Array<double,2> OO(m,4);        // the truncation matrix
-    blitz::Array<double,2> OT(4,m);        // trasposed truncation matrix
+    blitz::Array<double,2> OT(4,m);        // transposed truncation matrix
 
     blitz::Array<double,2> HAp;   //A' block hamiltonian
     blitz::Array<double,2> SzB;   //Sz(left) operator  
@@ -89,11 +90,9 @@ int main()
     /**
      * Infinite system algorithm: build the Hamiltonian from 2 to N-sites
      */
-    int st = 2;              //start with a 2^2=4 state system
+    int statesToKeepIFA=2;   //start with a 2^2=4 state system
     int sitesInSystem=2;     //# sites (SYSTEM)
 
-    int truncflag = 0;
-    int statesToKeepIFA=2; 
     blitz::Array<double,2> I2st=createIdentityMatrix(4);
 
     while (sitesInSystem <= (numberOfSites)/2 ) 
@@ -108,25 +107,13 @@ int main()
 
         statesToKeepIFA= (2*statesToKeepIFA<=m)? 2*statesToKeepIFA : m;
 
-        // decide whether you have to truncate or not 	
-        if (2*st <= m){     // NO TRUNCATION
-
-            st *= 2;
-        }
-        else {            // TRUNCATION
-            if (truncflag == 0 || truncflag == 3){
-                truncflag ++; // 1 or 4
-            }
-        }
-
         // calculate the reduced density matrix and truncate 
-        rhoTSR=calculateReducedDensityMatrix(Psi);
+        reducedDM=calculateReducedDensityMatrix(Psi);
 
-        OO.resize(statesToKeepIFA,rhoTSR.rows());           //resize the truncation matrix
-        OT.resize(rhoTSR.rows(),statesToKeepIFA);           //and its inverse
-        OO=truncateReducedDM(rhoTSR, statesToKeepIFA);      //fill the truncation matrix 
-        OT=OO.transpose(blitz::secondDim, blitz::firstDim); //fill its inverse
-        // end decision
+        OO.resize(statesToKeepIFA,reducedDM.rows()); //resize transf. matrix
+        OT.resize(reducedDM.rows(),statesToKeepIFA); // and its inverse
+        OO=truncateReducedDM(reducedDM, statesToKeepIFA); //get transf. matrix 
+        OT=OO.transpose(blitz::secondDim, blitz::firstDim); //and its inverse
 
         //transform the operators to new basis
         HAp.resize(statesToKeepIFA, statesToKeepIFA);
@@ -138,55 +125,37 @@ int main()
         SpB=transformOperator(SpAB, OT, OO);
         SmB=transformOperator(SmAB, OT, OO);
 
-        // prepare Hamiltonian for next iter
-        if (truncflag < 2){
-            if (truncflag == 1) {
-                truncflag = 2;	
-                st = m;
-            } // truncflag = 0
-        }
-
         //Hamiltonian for next iteration
         TSR.resize(statesToKeepIFA,2,statesToKeepIFA,2);
         TSR = HAp(i,k)*I2(j,l) + SzB(i,k)*Sz(j,l)+ 
             0.5*SpB(i,k)*Sm(j,l) + 0.5*SmB(i,k)*Sp(j,l) ;
 
-        blkS.HAB.resize(2*st,2*st);            
+        blkS.HAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);            
         blkS.HAB = reduceM2M2(TSR);
 
-        if (truncflag < 3){
-            int statesToKeep;
+	int statesToKeep= (2*statesToKeepIFA<=m)? 4*statesToKeepIFA : 2*m;
 
-            if  (truncflag == 2) {
-                truncflag = 3;
-                statesToKeep=2*m;
-            }
-            else{  // truncflag<2
-                statesToKeep=4*st;
-            }
+	//redefine identity matrix
+	I2st.resize(statesToKeep, statesToKeep);    
+	I2st = createIdentityMatrix(statesToKeep);
 
-            //redefine identity matrix
-            I2st.resize(statesToKeep, statesToKeep);    
-            I2st = createIdentityMatrix(statesToKeep);
+	//Operators for next iteration
+	SzAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);  
+	TSR = I2st(i,k)*Sz(j,l);
+	SzAB = reduceM2M2(TSR);
 
-            //Operators for next iteration
-            SzAB.resize(2*st,2*st);  
-            TSR = I2st(i,k)*Sz(j,l);
-            SzAB = reduceM2M2(TSR);
+	SpAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);
+	TSR = I2st(i,k)*Sp(j,l);
+	SpAB = reduceM2M2(TSR);
 
-            SpAB.resize(2*st,2*st);
-            TSR = I2st(i,k)*Sp(j,l);
-            SpAB = reduceM2M2(TSR);
+	SmAB.resize(2*statesToKeepIFA,2*statesToKeepIFA);
+	TSR = I2st(i,k)*Sm(j,l);
+	SmAB = reduceM2M2(TSR);        
 
-            SmAB.resize(2*st,2*st);
-            TSR = I2st(i,k)*Sm(j,l);
-            SmAB = reduceM2M2(TSR);        
-
-            Habcd.resize(2*st,2*st,2*st,2*st);   //re-prepare superblock matrix
-            Psi.resize(2*st,2*st);             //GS wavefunction
-            rhoTSR.resize(2*st,2*st);
-        } // if truncflag<3 
-
+	Habcd.resize(2*statesToKeepIFA,2*statesToKeepIFA,2*statesToKeepIFA,2*statesToKeepIFA);   //re-prepare superblock matrix
+	Psi.resize(2*statesToKeepIFA,2*statesToKeepIFA);             //GS wavefunction
+	reducedDM.resize(2*statesToKeepIFA,2*statesToKeepIFA);
+	
         sitesInSystem++;
 
         blkS.size = sitesInSystem;  //this is the size of the system block
@@ -232,9 +201,9 @@ int main()
                             groundStateEnergy);
 
                 // calculate the reduced density matrix and truncate 
-                rhoTSR=calculateReducedDensityMatrix(Psi);
+                reducedDM=calculateReducedDensityMatrix(Psi);
 
-                blitz::Array<double,2> OO=truncateReducedDM(rhoTSR, m);   
+                blitz::Array<double,2> OO=truncateReducedDM(reducedDM, m);   
                 OT=OO.transpose(blitz::secondDim, blitz::firstDim);
 
                 // transform the operators to new basis

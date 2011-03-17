@@ -18,14 +18,14 @@
 //BZ_USING_NAMESPACE(blitz)
 
 ///Block class
-class BLOCK {
+class Block {
 	public:
 		/// number of sites in the block
 		int size;    
 		/// A' plus right spin Hamiltonian: Blitz++ array
 		blitz::Array<double,2> HAB;   
 
-		BLOCK();
+		Block();
 		void ISAwrite(const int sites);
 		void FSAread(const int sites,const int iter);
 		void FSAwrite(const int sites,const int iter);
@@ -37,14 +37,14 @@ class BLOCK {
 		void Read();
 		void Write();
 };
-BLOCK::BLOCK(){
+Block::Block(){
 ///constructor: initialize filename for writing blocks to file
   fname[0] = '.'; fname[1] = 48;  //ASCII for 0
   fname[4] = '.'; fname[5] = 'r'; 
   fname[6] = '\0';
 }
 
-void BLOCK::ISAwrite(const int sites){
+void Block::ISAwrite(const int sites){
 /// rename/write wrapper for the ISA
 	fname[3] = 48 + (sites)%10;          //some ASCII 
 	fname[2] = 48 + sites/10;
@@ -54,7 +54,7 @@ void BLOCK::ISAwrite(const int sites){
 	Write(); //write right block
 }
 
-void BLOCK::FSAread(const int sites,const int iter){
+void Block::FSAread(const int sites,const int iter){
 /// file read for the finite-system algorithm
 	fname[3] = 48 + (sites)%10;          //some ASCII 
 	fname[2] = 48 + sites/10;
@@ -62,7 +62,7 @@ void BLOCK::FSAread(const int sites,const int iter){
 	Read();
 }//FSAread
 
-void BLOCK::FSAwrite(const int sites,const int iter){
+void Block::FSAwrite(const int sites,const int iter){
 /// file write for the finite-system algorithm
       fname[3] = 48 + (sites)%10;         //some ASCII 
       fname[2] = 48 + sites/10;
@@ -70,7 +70,7 @@ void BLOCK::FSAwrite(const int sites,const int iter){
       Write();
 }//FSAwrite
 
-void BLOCK::Write() {
+void Block::Write() {
 /// opens the output file and writes the Blitz++ array
   std::ofstream fout;  
   fout.open(fname,std::ios::out);
@@ -78,7 +78,7 @@ void BLOCK::Write() {
   fout.close();
 } //Write
 
-void BLOCK::Read() {
+void Block::Read() {
 /// opens the input file and reads the Blitz++ array
   std::ifstream fin;  
   fin.open(fname,std::ios::in);

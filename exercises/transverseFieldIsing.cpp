@@ -32,6 +32,7 @@ int main()
     int numberOfHalfSweeps;
     int numberOfSites;    
     int m;
+    double h;
     std::cout<<"Enter the number states to keep: ";
     std::cin>>m;
     std::cout<<"Enter the number of sites in the chain: ";
@@ -55,8 +56,7 @@ int main()
 
     blitz::Array<double,2> blockH_p;       //block hamiltonian after transform.
     blitz::Array<double,2> S_z_p;          //S_z operator after transformation  
-    blitz::Array<double,2> S_m_p;          //S_m operator after transformation
-    blitz::Array<double,2> S_p_p;          //S_p operator after transformation
+    blitz::Array<double,2> S_x_p;          //S_x operator after transformation
 
     // create the pauli matrices and the 2x2 identity matrix
     blitz::Array<double,2> sigma_z(2,2), sigma_x(2,2);
@@ -80,7 +80,7 @@ int main()
     blitz::Array<double,2> S_z = reduceM2M2(TSR);
 
     TSR = sigma_x(i,k)*I2(j,l);
-    blitz::Array<double,2> S_m = reduceM2M2(TSR);
+    blitz::Array<double,2> S_x = reduceM2M2(TSR);
     // done building the Hamiltonian
 
     /**
@@ -170,7 +170,7 @@ int main()
         int sitesInSystem = numberOfSites/2;
         system.FSAread(sitesInSystem,1);
 	
-	blitz::Array<double,2> Im=createIdentityMatrix(m);
+	blitz::Array<double,2> Im=createIdentityMatrix(2*m);
 
         for (int halfSweep=0; halfSweep<numberOfHalfSweeps; halfSweep++)
         {
@@ -206,7 +206,7 @@ int main()
                 // transform the operators to new basis
                 blockH_p=transformOperator(system.blockH, OT, OO);
                 S_z_p=transformOperator(S_z, OT, OO);
-                S_x_p=transformOperator(S_m, OT, OO);
+                S_x_p=transformOperator(S_x, OT, OO);
 
                 // add spin to the system block only
                 TSR = blockH_p(i,k)*I2(j,l) + S_x_p(i,k)*sigma_x(j,l)+ 

@@ -42,7 +42,7 @@ int main()
     std::cin>>numberOfHalfSweeps;
 
     Block system;   //create the system block
-    Block environ;  //create the environment block
+    Block env;  //create the environment block
 
     //Below we declare the Blitz++ matrices used by the program
     blitz::Array<double,4> TSR(2,2,2,2);   //tensor product for Hab hamiltonian
@@ -186,10 +186,10 @@ int main()
                 int sitesInEnviroment = numberOfSites - sitesInSystem;
 
                 // read the environment block from disk
-                environ.FSAread(sitesInEnviroment,halfSweep);
+                env.FSAread(sitesInEnviroment,halfSweep);
 
                 // build the hamiltonian as a four-index tensor
-                Habcd = environ.blockH(i,k)*I2st(j,l)+
+                Habcd = env.blockH(i,k)*I2st(j,l)+
 		    I2st(i,k)*system.blockH(j,l)+
                     S_z(i,k)*S_z(j,l)+
                     0.5*S_p(i,k)*S_m(j,l)+0.5*S_m(i,k)*S_p(j,l);

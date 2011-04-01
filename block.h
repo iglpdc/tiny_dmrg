@@ -15,8 +15,6 @@
 #include <fstream>
 #include "blitz/array.h"
 
-//BZ_USING_NAMESPACE(blitz)
-
 ///Block class
 class Block {
 	public:

@@ -18,8 +18,6 @@
 #include "matrixManipulation.h"
 #include "lanczosDMRG.h"
 
-BZ_USING_NAMESPACE(blitz)
-
 /**
  * @brief A function to reduce the Hamiltonian to a tri-diagonal form  
  *
@@ -61,8 +59,8 @@ int diagonalizeWithLanczos(blitz::Array<double,2>& Ham, blitz::Array<double,1>& 
   blitz::Array<double,2> Hmatrix(LIT,LIT);
 
   //tensor indices
-  firstIndex i;    secondIndex j;
-  thirdIndex k;   
+  blitz::firstIndex i;    blitz::secondIndex j;
+  blitz::thirdIndex k;   
   
   int iter = 0;
   //
@@ -151,7 +149,7 @@ int diagonalizeWithLanczos(blitz::Array<double,2>& Ham, blitz::Array<double,1>& 
 
         if (iter == LIT-2) {
           LIT += 100;
-          cout<<LIT<<" Resize Lan. it \n";
+	  std::cout<<LIT<<" Resize Lan. it \n";
           d.resize(LIT);
           e.resize(LIT);
           Hmatrix.resize(LIT,LIT);
@@ -207,18 +205,19 @@ int diagonalizeWithLanczos(blitz::Array<double,2>& Ham, blitz::Array<double,1>& 
  * Returns the ground state eigenvalue and eigenvector using the 
  * Lanczos function
  */
-double calculateGroundState(Array<double,4>& Hm, Array<double,2>& Ed)
+double calculateGroundState(blitz::Array<double,4>& Hm, 
+	blitz::Array<double,2>& Ed)
 {
     const int nn=sqrt(Hm.numElements());
 
-    Array<double,2> Ham2d(nn,nn);
+    blitz::Array<double,2> Ham2d(nn,nn);
 
     //complicated integer square root?
     int L = static_cast<int>(std::sqrt(1.0*nn));          
 
     Ham2d=reduceM2M2(Hm);
 
-    Array<double,1> Psi(nn);  //return eigenvector
+    blitz::Array<double,1> Psi(nn);  //return eigenvector
     double En;                //return eigenvalue
 
     int lrt = diagonalizeWithLanczos(Ham2d, Psi, &En); 
